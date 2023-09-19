@@ -171,7 +171,7 @@ class TMX:
 
     def collisions(self, layer):
         # Return the collisions of a layer. The colisions are defined as tiles
-        # from the collision-tiles.tsx tileset and the mw3::Tiles enumeration.
+        # from the collision-tiles.tsx tileset and the bntmx::Tiles enumeration.
 
         tiles_enum_name = get_tiles_enum_name()
         tile_id_origin = int(self._root.find("./tileset[@source='collision-tiles.tsx']").get("firstgid"))
@@ -259,7 +259,7 @@ class TMXConverter:
     def cpp_header(self):
         # Convert the TMX into its C++ header.
 
-        guard = "MW3_MAPS_" + self._name.upper() + "_COLLISIONS_H"
+        guard = "BNTMX_MAPS_" + self._name.upper() + "_COLLISIONS_H"
         width = self._tmx.columns()
         height = self._tmx.lines()
         n_layers = self._tmx.n_layers()
@@ -271,9 +271,9 @@ class TMXConverter:
 
 #include <bn_display.h>
 #include <bn_regular_bg_position_hbe_ptr.h>
-#include "mw3_map.h"
+#include "bntmx_map.h"
 
-namespace mw3::maps
+namespace bntmx::maps
 {{
     class {map_name} : public Map
     {{
@@ -340,7 +340,7 @@ namespace mw3::maps
     def cpp_source(self):
         # Convert the TMX into its C++ source.
 
-        header_filename = "mw3_maps_" + self._name + ".h"
+        header_filename = "bntmx_maps_" + self._name + ".h"
 
         n_layers = self._tmx.n_layers()
         width = self._tmx.columns()
@@ -366,9 +366,9 @@ namespace mw3::maps
 #include <bn_regular_bg_items_{map_name}_layers.h>
 #include <bn_regular_bg_position_hbe_ptr.h>
 #include <bn_vector.h>
-#include "mw3_tiles.h"
+#include "bntmx_tiles.h"
 
-namespace mw3::maps
+namespace bntmx::maps
 {{
     static constexpr MapItem _items[] = {cpp_items};
     static constexpr struct {{uint8_t index; uint8_t length;}} _items_bounds[] = {items_bounds};
@@ -456,8 +456,8 @@ def process(build_dir):
 
             bmp_filename = os.path.join(build_dir, "graphics", map_name + "_layers.bmp")
             json_filename = os.path.join(build_dir, "graphics", map_name + "_layers.json")
-            header_filename = os.path.join(build_dir, "include", "mw3_maps_" + map_name + ".h")
-            source_filename = os.path.join(build_dir, "src", "mw3_maps_" + map_name + ".cpp")
+            header_filename = os.path.join(build_dir, "include", "bntmx_maps_" + map_name + ".h")
+            source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
 
             # Don't rebuild unchanged files
             input_mtime = max(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [tmx_filename] + converter.dependencies()))
@@ -489,10 +489,10 @@ def process(build_dir):
 
 
 def get_tiles_enum_name():
-    # Parse mw3_tiles.h to extract the names of the tiles from the mw3::Tiles
+    # Parse bntmx_tiles.h to extract the names of the tiles from the bntmx::Tiles
     # enum who match the the collision-tiles.tsx tileset.
 
-    header = open("include/mw3_tiles.h")
+    header = open("include/bntmx_tiles.h")
     return re.findall("enum Tiles[\n\s]*?{([\n\s\w,]*?)}", header.read(), re.MULTILINE)[0].replace("\n", "").replace(" ", "").strip(",").split(",")
 
 if __name__ == "__main__":

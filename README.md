@@ -35,8 +35,8 @@ Given a map named mymap, you should have the following files:
 The script will generate the following files:
 - `extrabuild/graphics/mymap_layers.bmp`
 - `extrabuild/graphics/mymap_layers.json`
-- `extrabuild/include/mw3_maps_mymap.h`
-- `extrabuild/src/mw3_maps_mymap.cpp`
+- `extrabuild/include/bntmx_maps_mymap.h`
+- `extrabuild/src/bntmx_maps_mymap.cpp`
 
 ## Map Format
 
@@ -45,22 +45,22 @@ The numbers of the layers should be consecutive, starting from 0.
 
 Each group should have the following layers:
 - `graphics` which will be turned into `extrabuild/graphics/mymap_layers.bmp`
-- `collisions` which will be accessed via `mw3::Map::collisions()`
-- `objects` which will be accessed via `mw3::Map::get_item()`
+- `collisions` which will be accessed via `bntmx::Map::collisions()`
+- `objects` which will be accessed via `bntmx::Map::get_item()`
 
 The tiles are expected to be 16x16.
-The collisions layer will have tiles matching `mw3::Tiles`.
+The collisions layer will have tiles matching `bntmx::Tiles`.
 
 ## Map Logic
 
-Each map is converted into an implementation of the abstract class `mw3::Map`
-named `mw3::maps::mymap`. You still have to implement the following
+Each map is converted into an implementation of the abstract class `bntmx::Map`
+named `bntmx::maps::mymap`. You still have to implement the following
 logic-related methods:
-- `mw3::maps::mymap::init()`
-- `mw3::maps::mymap::enter()`
-- `mw3::maps::mymap::leave()`
-- `mw3::maps::mymap::deinit()`
-- `mw3::maps::mymap::interact_with_item()`
-- `mw3::maps::mymap::update_background()`
-- `mw3::maps::mymap::update_foreground()`
-- `mw3::maps::mymap::out_of_bounds()`
+- `bntmx::maps::mymap::init()`
+- `bntmx::maps::mymap::enter()`
+- `bntmx::maps::mymap::leave()`
+- `bntmx::maps::mymap::deinit()`
+- `bntmx::maps::mymap::interact_with_item()`
+- `bntmx::maps::mymap::update_background()`
+- `bntmx::maps::mymap::update_foreground()`
+- `bntmx::maps::mymap::out_of_bounds()`

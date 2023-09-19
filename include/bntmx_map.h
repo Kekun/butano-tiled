@@ -3,10 +3,10 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef MW3_MAP_H
-#define MW3_MAP_H
+#ifndef BNTMX_MAP_H
+#define BNTMX_MAP_H
 
-namespace mw3
+namespace bntmx
 {
     class Scene;
 }
@@ -14,13 +14,13 @@ namespace mw3
 #include <bn_fixed.h>
 #include <bn_optional.h>
 #include <bn_regular_bg_ptr.h>
-#include "mw3_map_id.h"
-#include "mw3_map_item.h"
-#include "mw3_teleport.h"
+#include "bntmx_map_id.h"
+#include "bntmx_map_item.h"
+#include "bntmx_teleport.h"
 
-#define MW3_TILE_SIZE 16
+#define BNTMX_TILE_SIZE 16
 
-namespace mw3
+namespace bntmx
 {
     class Map
     {
@@ -34,12 +34,12 @@ namespace mw3
 
             constexpr int get_tile_x(const bn::fixed& x) const
             {
-                return bn::clamp(x.integer() / MW3_TILE_SIZE, 0, width() - 1);
+                return bn::clamp(x.integer() / BNTMX_TILE_SIZE, 0, width() - 1);
             }
 
             constexpr int get_tile_y(const bn::fixed& y) const
             {
-                return bn::clamp(y.integer() / MW3_TILE_SIZE, 0, height() - 1);
+                return bn::clamp(y.integer() / BNTMX_TILE_SIZE, 0, height() - 1);
             }
 
             virtual MapItem get_item(uint8_t layer_index, uint8_t item_index) const = 0;

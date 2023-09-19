@@ -3,12 +3,12 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef MW3_MAP_ITEM_H
-#define MW3_MAP_ITEM_H
+#ifndef BNTMX_MAP_ITEM_H
+#define BNTMX_MAP_ITEM_H
 
 #include <bn_fixed_point.h>
 
-namespace mw3
+namespace bntmx
 {
     struct MapItem
     {

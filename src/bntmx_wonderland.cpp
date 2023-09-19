@@ -3,12 +3,12 @@
  * zlib License, see LICENSE file.
  */
 
-#include "mw3_maps_wonderland.h"
+#include "bntmx_maps_wonderland.h"
 
 #include <bn_display.h>
 #include <bn_fixed.h>
 
-namespace mw3::maps
+namespace bntmx::maps
 {
     void wonderland::init([[maybe_unused]] Scene& scene)
     {
@@ -60,7 +60,7 @@ namespace mw3::maps
         {
             // FIXME To Shion's House
         }
-        else if (position.x() >= width() * MW3_TILE_SIZE)
+        else if (position.x() >= width() * BNTMX_TILE_SIZE)
         {
             // FIXME To Purapril Castle Entrance
         }

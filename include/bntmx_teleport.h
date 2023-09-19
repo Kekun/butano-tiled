@@ -3,13 +3,13 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef MW3_TELEPORT_H
-#define MW3_TELEPORT_H
+#ifndef BNTMX_TELEPORT_H
+#define BNTMX_TELEPORT_H
 
 #include <bn_fixed_point.h>
-#include "mw3_map_id.h"
+#include "bntmx_map_id.h"
 
-namespace mw3
+namespace bntmx
 {
     enum TeleportType {
         STATIC_TRANSITION,

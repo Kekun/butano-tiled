@@ -4,13 +4,13 @@
  */
 
 #include <bn_core.h>
-#include "mw3_maps_wonderland.h"
+#include "bntmx_maps_wonderland.h"
 
 int main()
 {
     bn::core::init();
 
-    mw3::Map* map = new mw3::maps::wonderland();
+    bntmx::Map* map = new bntmx::maps::wonderland();
     bn::regular_bg_ptr layer = map->create_layer(0);
     map->background().set_priority(3);
     layer.set_priority(2);

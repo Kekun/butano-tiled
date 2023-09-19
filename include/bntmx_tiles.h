@@ -3,15 +3,16 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef MW3_MAP_ID_H
-#define MW3_MAP_ID_H
+#ifndef BNTMX_TILES_H
+#define BNTMX_TILES_H
 
-namespace mw3
+namespace bntmx
 {
-    enum MapId
+    enum Tiles
     {
-        SHION_HOUSE,
-        WONDERLAND,
+        VOID,
+        PLAIN,
+        PLATFORM,
     };
 }
 
