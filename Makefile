@@ -28,24 +28,24 @@
 #---------------------------------------------------------------------------------------------------------------------
 TARGET      :=  $(notdir $(CURDIR))
 BUILD       :=  build
-LIBBUTANO   :=  ../butano
+LIBBUTANO   :=  butano/butano
 PYTHON      :=  python
-SOURCES     :=  src
-INCLUDES    :=  include
+SOURCES     :=  src extrabuild/src
+INCLUDES    :=  include extrabuild/include
 DATA        :=
-GRAPHICS    :=  graphics
+GRAPHICS    :=  graphics extrabuild/graphics
 AUDIO       :=  audio
 DMGAUDIO    :=  dmg_audio
-ROMTITLE    :=  ROM TITLE
-ROMCODE     :=  SBTP
+ROMTITLE    :=  MONSTER WORLD 3 ADVANCE
+ROMCODE     :=  MW3A
 USERFLAGS   :=  
 USERASFLAGS :=  
 USERLDFLAGS :=  
 USERLIBDIRS :=  
 USERLIBS    :=  
 DEFAULTLIBS :=  
-USERBUILD   :=  
-EXTTOOL     :=  
+USERBUILD   :=  extrabuild
+EXTTOOL     :=  @$(PYTHON) -B extrabuilder.py --build=$(USERBUILD)
 
 #---------------------------------------------------------------------------------------------------------------------
 # Export absolute butano path:
