@@ -44,21 +44,7 @@ namespace bntmx
 
             virtual MapItem get_item(uint8_t layer_index, uint8_t item_index) const = 0;
 
-            virtual bn::regular_bg_ptr& background() = 0;
-            virtual bn::regular_bg_ptr& foreground() = 0;
-
             virtual bn::regular_bg_ptr create_layer(uint8_t layer_index) const = 0;
-
-            virtual void init(Scene& scene) = 0;
-            virtual void enter(Scene& scene) = 0;
-            virtual void leave(Scene& scene) = 0;
-            virtual void deinit(Scene& scene) = 0;
-            virtual void interact_with_item(Scene& scene, int item_id) = 0;
-            virtual void update_background(bn::fixed camera_x,
-                                           bn::fixed camera_y) = 0;
-            virtual void update_foreground(bn::fixed camera_x,
-                                           bn::fixed camera_y) = 0;
-            virtual bn::optional<Teleport> out_of_bounds(bn::fixed_point position) = 0;
     };
 
     Map* create_map(MapId map_id);

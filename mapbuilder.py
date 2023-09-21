@@ -278,13 +278,6 @@ namespace bntmx::maps
     class {map_name} : public Map
     {{
         private:
-            bn::regular_bg_ptr _background;
-            bn::regular_bg_ptr _foreground;
-            bn::array<bn::fixed, bn::display::height()> _background_horizontal_deltas;
-            bn::regular_bg_position_hbe_ptr _background_horizontal_deltas_hbe;
-            bn::array<bn::fixed, bn::display::height()> _foreground_horizontal_deltas;
-            bn::regular_bg_position_hbe_ptr _foreground_horizontal_deltas_hbe;
-
             static const uint16_t _width = {width};
             static const uint16_t _height = {height};
 
@@ -314,21 +307,7 @@ namespace bntmx::maps
 
             MapItem get_item(uint8_t layer_index, uint8_t item_index) const;
 
-            bn::regular_bg_ptr& background();
-            bn::regular_bg_ptr& foreground();
-
             bn::regular_bg_ptr create_layer(uint8_t layer_index) const;
-
-            void init(Scene& scene);
-            void enter(Scene& scene);
-            void leave(Scene& scene);
-            void deinit(Scene& scene);
-            void interact_with_item(Scene& scene, int item_id);
-            void update_background(bn::fixed camera_x,
-                                   bn::fixed camera_y);
-            void update_foreground(bn::fixed camera_x,
-                                   bn::fixed camera_y);
-            bn::optional<Teleport> out_of_bounds(bn::fixed_point position);
     }};
 }}
 
@@ -361,8 +340,6 @@ namespace bntmx::maps
         source = '''\
 #include "{header_filename}"
 
-#include <bn_regular_bg_items_{map_name}_background.h>
-#include <bn_regular_bg_items_{map_name}_foreground.h>
 #include <bn_regular_bg_items_{map_name}_layers.h>
 #include <bn_regular_bg_position_hbe_ptr.h>
 #include <bn_vector.h>
@@ -376,11 +353,7 @@ namespace bntmx::maps
 {collisions}
     }};
 
-    {map_name}::{map_name}() :
-        _background(bn::regular_bg_items::{map_name}_background.create_bg(8, 48)),
-        _foreground(bn::regular_bg_items::{map_name}_foreground.create_bg(8, 48)),
-        _background_horizontal_deltas_hbe(bn::regular_bg_position_hbe_ptr::create_horizontal(_background, _background_horizontal_deltas)),
-        _foreground_horizontal_deltas_hbe(bn::regular_bg_position_hbe_ptr::create_horizontal(_foreground, _foreground_horizontal_deltas))
+    {map_name}::{map_name}()
     {{
     }}
 
@@ -406,16 +379,6 @@ namespace bntmx::maps
         BN_ASSERT(layer_index < {n_layers}, "Invalid layer index: ", layer_index);
         BN_ASSERT(item_index < _items_bounds[layer_index].length, "Invalid item index: ", item_index);
         return _items[_items_bounds[layer_index].index + item_index];
-    }}
-
-    bn::regular_bg_ptr& {map_name}::background()
-    {{
-        return _background;
-    }}
-
-    bn::regular_bg_ptr& {map_name}::foreground()
-    {{
-        return _foreground;
     }}
 
     bn::regular_bg_ptr {map_name}::create_layer(uint8_t layer_index) const

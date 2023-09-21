@@ -5,16 +5,15 @@
 
 #include <bn_core.h>
 #include "bntmx_maps_wonderland.h"
+#include "bn_regular_bg_items_wonderland_background.h"
 
 int main()
 {
     bn::core::init();
 
+    bn::regular_bg_ptr background = bn::regular_bg_items::wonderland_background.create_bg(8, 48);
     bntmx::Map* map = new bntmx::maps::wonderland();
     bn::regular_bg_ptr layer = map->create_layer(0);
-    map->background().set_priority(3);
-    layer.set_priority(2);
-    map->foreground().set_priority(1);
 
     while(true)
     {

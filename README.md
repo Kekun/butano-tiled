@@ -26,10 +26,6 @@ In your makefile add:
 - `@$(PYTHON) -B extrabuilder.py --build=$(USERBUILD)` to `EXTTOOL`
 
 Given a map named mymap, you should have the following files:
-- `graphics/mymap_background.bmp`
-- `graphics/mymap_background.json`
-- `graphics/mymap_foreground.bmp`
-- `graphics/mymap_foreground.json`
 - `maps/mymap.tmx`
 
 The script will generate the following files:
@@ -54,13 +50,4 @@ The collisions layer will have tiles matching `bntmx::Tiles`.
 ## Map Logic
 
 Each map is converted into an implementation of the abstract class `bntmx::Map`
-named `bntmx::maps::mymap`. You still have to implement the following
-logic-related methods:
-- `bntmx::maps::mymap::init()`
-- `bntmx::maps::mymap::enter()`
-- `bntmx::maps::mymap::leave()`
-- `bntmx::maps::mymap::deinit()`
-- `bntmx::maps::mymap::interact_with_item()`
-- `bntmx::maps::mymap::update_background()`
-- `bntmx::maps::mymap::update_foreground()`
-- `bntmx::maps::mymap::out_of_bounds()`
+named `bntmx::maps::mymap`.
