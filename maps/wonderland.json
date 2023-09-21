@@ -1,0 +1,14 @@
+{
+    "graphics": [
+        "layer_0/graphics",
+        "layer_1/graphics"
+    ],
+    "objects": [
+        "layer_0/objects",
+        "layer_1/objects"
+    ],
+    "tiles": [
+        "layer_0/collisions",
+        "layer_1/collisions"
+    ]
+}

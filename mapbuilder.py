@@ -2,6 +2,7 @@
 
 from PIL import Image
 import argparse
+import json
 import logging
 import os
 import re
@@ -97,6 +98,17 @@ class TMX:
         y = int(object_node.get("y")) - int(object_node.get("height")) // 2
         return x, y
 
+    def _layer_path_to_xpath(self, layer_path):
+        # Convert a layer path from the JSON descriptor into the XPath to the layer's node
+
+        layer_path_elements = layer_path.split("/")
+        xpath = "."
+        for group in layer_path_elements[:-1]:
+            xpath += "/group[@name='" + group + "']"
+        xpath += "/layer[@name='" + layer_path_elements[-1] + "']"
+
+        return xpath
+
     def dependencies(self):
         deps = []
         for first, last, tsx in self._tilesets:
@@ -146,11 +158,13 @@ class TMX:
             items.append(layer_items)
         return items
 
-    def compose(self, dst_image, layer, x, y):
+    def compose(self, dst_image, layer_path, x, y):
         # Compose a layer on an image
 
+        xpath = self._layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
+
         y2 = 0
-        for line in iter(self._root.find("./group[@name='layer_" + str(layer) + "']/layer[@name='graphics']/data[@encoding='csv']").text.splitlines()):
+        for line in iter(self._root.find(xpath).text.splitlines()):
             if line == '':
                 continue;
 
@@ -189,6 +203,8 @@ class TMXConverter:
     def __init__(self, tmx_filename):
         self._tmx = TMX(tmx_filename)
         self._name = os.path.splitext(os.path.basename(tmx_filename))[0]
+        descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
+        self._descriptor = json.load(descriptor)
 
     def _bounds(self, list_of_list):
         # Return a list of (index,length) pairs for a list of lists, so it can
@@ -232,8 +248,8 @@ class TMXConverter:
         # Compose the layers into a single background image
         n_layers = self._tmx.n_layers()
         gfx_im = Image.new("RGBA", (bg_width, bg_height * n_layers), self._tmx.background_color())
-        for i in range(n_layers):
-            self._tmx.compose(gfx_im, i, 0, bg_height * i)
+        for i, layer_path in enumerate(self._descriptor["graphics"]):
+            self._tmx.compose(gfx_im, layer_path, 0, bg_height * i)
 
         # Make the image paletted
         gfx_im = gfx_im.quantize(256)

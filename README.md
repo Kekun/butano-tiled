@@ -26,6 +26,7 @@ In your makefile add:
 - `@$(PYTHON) -B extrabuilder.py --build=$(USERBUILD)` to `EXTTOOL`
 
 Given a map named mymap, you should have the following files:
+- `maps/mymap.json`
 - `maps/mymap.tmx`
 
 The script will generate the following files:
@@ -46,6 +47,26 @@ Each group should have the following layers:
 
 The tiles are expected to be 16x16.
 The collisions layer will have tiles matching `bntmx::Tiles`.
+
+## JSON Descriptor format
+
+Each map must have a .json descriptor file using the following format:
+```json
+{
+    "graphics": [
+        /* Names of the layers to draw as regulat background items. */
+    ],
+    "objects": [
+        /* Names of the layers whose objects should be exported. */
+    ],
+    "tiles": [
+        /* Names of the layers whose tiles should be exported. */
+    ]
+}
+```
+
+To access the layer "mylayer" in the group "mygroup", join them as a path with
+the / separator like this : "mygroup/mylayer".
 
 ## Map Logic
 
