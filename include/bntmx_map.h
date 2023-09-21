@@ -6,48 +6,99 @@
 #ifndef BNTMX_MAP_H
 #define BNTMX_MAP_H
 
-namespace bntmx
-{
-    class Scene;
-}
-
-#include <bn_fixed.h>
-#include <bn_optional.h>
-#include <bn_regular_bg_ptr.h>
-#include "bntmx_map_id.h"
-#include "bntmx_map_item.h"
-#include "bntmx_teleport.h"
-
-#define BNTMX_TILE_SIZE 16
+#include <bn_size.h>
+#include <bn_span.h>
+#include <bn_regular_bg_item.h>
+#include "bntmx_map_object.h"
+#include "bntmx_map_tile.h"
 
 namespace bntmx
 {
-    class Map
-    {
-        public:
-            virtual ~Map() {}
-            virtual constexpr uint16_t width() const = 0;
-            virtual constexpr uint16_t height() const = 0;
-            virtual constexpr uint8_t n_layers() const = 0;
-            virtual constexpr uint8_t n_items(uint8_t layer_index) const = 0;
-            virtual constexpr const uint8_t* collisions(uint8_t layer_index) const = 0;
 
-            constexpr int get_tile_x(const bn::fixed& x) const
-            {
-                return bn::clamp(x.integer() / BNTMX_TILE_SIZE, 0, width() - 1);
-            }
+class map
+{
 
-            constexpr int get_tile_y(const bn::fixed& y) const
-            {
-                return bn::clamp(y.integer() / BNTMX_TILE_SIZE, 0, height() - 1);
-            }
+public:
+    virtual constexpr ~map() {}
 
-            virtual MapItem get_item(uint8_t layer_index, uint8_t item_index) const = 0;
+    /**
+     * @brief Returns the dimensions of the map in pixels.
+     */
+    virtual constexpr bn::size dimensions_in_pixels() const = 0;
 
-            virtual bn::regular_bg_ptr create_layer(uint8_t layer_index) const = 0;
-    };
+    /**
+     * @brief Returns the dimensions of the map in tiles.
+     */
+    virtual constexpr bn::size dimensions_in_tiles() const = 0;
 
-    Map* create_map(MapId map_id);
+    /**
+     * @brief Returns the dimensions of each tile of the map.
+     */
+    virtual constexpr bn::size tile_dimensions() const = 0;
+
+    /**
+     * @brief Returns the width of the map in pixels.
+     */
+    virtual constexpr int width_in_pixels() const = 0;
+
+    /**
+     * @brief Returns the height of the map in pixels.
+     */
+    virtual constexpr int height_in_pixels() const = 0;
+
+    /**
+     * @brief Returns the width of the map in tiles.
+     */
+    virtual constexpr int width_in_tiles() const = 0;
+
+    /**
+     * @brief Returns the height of the map in tiles.
+     */
+    virtual constexpr int height_in_tiles() const = 0;
+
+    /**
+     * @brief Returns the width of each tile of the map.
+     */
+    virtual constexpr int tile_width() const = 0;
+
+    /**
+     * @brief Returns the height of each tile of the map.
+     */
+    virtual constexpr int tile_height() const = 0;
+
+    /**
+     * @brief Returns the number of graphics layers of the map.
+     */
+    virtual constexpr int n_graphics_layers() const = 0;
+
+    /**
+     * @brief Returns the number of objects layers of the map.
+     */
+    virtual constexpr int n_objects_layers() const = 0;
+
+    /**
+     * @brief Returns the number of tiles layers of the map.
+     */
+    virtual constexpr int n_tiles_layers() const = 0;
+
+    /**
+     * @brief Returns the bn::regular_bg_item containing the graphics layers of the map.
+     */
+    virtual constexpr bn::regular_bg_item regular_bg_item() const = 0;
+
+    /**
+     * @brief Returns the objects of the given layer of the map.
+     * @param objects_layer_index Index of the objects layer.
+     */
+    virtual constexpr const bn::span<const bntmx::map_object> objects_layer(int objects_layer_index) const = 0;
+
+    /**
+     * @brief Returns the tiles of the given layer of the map.
+     * @param tiles_layer_index Index of the tiles layer.
+     */
+    virtual constexpr const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const = 0;
+};
+
 }
 
 #endif

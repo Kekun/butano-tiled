@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="64" height="10" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#ff7fff" nextlayerid="10" nextobjectid="18">
  <tileset firstgid="1" source="wonderland.tsx"/>
- <tileset firstgid="257" source="collision-tiles.tsx"/>
+ <tileset firstgid="257" source="collision_tiles.tsx"/>
  <tileset firstgid="260" source="objects.tsx"/>
  <group id="5" name="layer_1">
   <layer id="1" name="graphics" width="64" height="10">

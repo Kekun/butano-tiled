@@ -3,16 +3,14 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef BNTMX_MAP_ID_H
-#define BNTMX_MAP_ID_H
+#ifndef BNTMX_MAP_TILE_H
+#define BNTMX_MAP_TILE_H
 
 namespace bntmx
 {
-    enum MapId
-    {
-        SHION_HOUSE,
-        WONDERLAND,
-    };
+
+typedef uint16_t map_tile;
+
 }
 
 #endif

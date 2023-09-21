@@ -1,5 +1,3 @@
-assets/
-build/
-extrabuild/
+*build/
 *.elf
 *.gba

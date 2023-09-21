@@ -3,18 +3,20 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef BNTMX_MAP_ITEM_H
-#define BNTMX_MAP_ITEM_H
+#ifndef BNTMX_MAP_OBJECT_H
+#define BNTMX_MAP_OBJECT_H
 
 #include <bn_fixed_point.h>
 
 namespace bntmx
 {
-    struct MapItem
-    {
-        bn::fixed_point position;
-        int id;
-    };
+
+struct map_object
+{
+    bn::fixed_point position;
+    int id;
+};
+
 }
 
 #endif

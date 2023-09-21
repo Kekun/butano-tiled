@@ -22,6 +22,7 @@
 # USERLIBS is a list of additional libraries to link with the project.
 # DEFAULTLIBS links standard system libraries when it is not empty.
 # USERBUILD is a list of additional directories to remove when cleaning the project.
+# MAPS is a list of directories containing files to be processed by bntmx.
 # EXTTOOL is an optional command executed before processing audio, graphics and code files.
 #
 # All directories are specified relative to the project directory where the makefile is found.
@@ -30,10 +31,10 @@ TARGET      :=  $(notdir $(CURDIR))
 BUILD       :=  build
 LIBBUTANO   :=  butano/butano
 PYTHON      :=  python
-SOURCES     :=  src extrabuild/src
-INCLUDES    :=  include extrabuild/include
+SOURCES     :=  src $(BUILD)/src
+INCLUDES    :=  include $(BUILD)/include
 DATA        :=
-GRAPHICS    :=  graphics extrabuild/graphics
+GRAPHICS    :=  graphics $(BUILD)/graphics
 AUDIO       :=  audio
 DMGAUDIO    :=  dmg_audio
 ROMTITLE    :=  BUTANO TMX
@@ -44,8 +45,9 @@ USERLDFLAGS :=
 USERLIBDIRS :=  
 USERLIBS    :=  
 DEFAULTLIBS :=  
-USERBUILD   :=  extrabuild
-EXTTOOL     :=  @$(PYTHON) -B extrabuilder.py --build=$(USERBUILD)
+USERBUILD   :=  
+MAPS        :=  maps
+EXTTOOL     :=  @$(PYTHON) -B mapbuilder.py --build=$(BUILD) $(MAPS)
 
 #---------------------------------------------------------------------------------------------------------------------
 # Export absolute butano path:
