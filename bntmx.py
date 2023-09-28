@@ -217,37 +217,41 @@ class TMX:
                 objects.add(item_class, MapObject(item_x, item_y, item_id, item_class))
         return objects
 
-    def compose(self, dst_image, layer_path, x, y):
+    def compose(self, dst_image, layer_paths, x, y):
         # Compose a layer on an image
 
-        xpath = self._tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
+        if isinstance(layer_paths, str):
+            layer_paths = [layer_paths]
 
-        # The size of the map, in pixels
-        src_width, src_height = self.dimensions_in_pixels()
-        # The size of each individual background
-        bg_width, bg_height = bg_size(src_width), bg_size(src_height)
-        # The offset to center the layer on the background
-        offset_x, offset_y = (bg_width - src_width) // 2, (bg_height - src_height) // 2
+        for layer_path in layer_paths:
+            xpath = self._tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
 
-        y2 = 0
-        for line in iter(self._root.find(xpath).text.splitlines()):
-            if line == '':
-                continue;
+            # The size of the map, in pixels
+            src_width, src_height = self.dimensions_in_pixels()
+            # The size of each individual background
+            bg_width, bg_height = bg_size(src_width), bg_size(src_height)
+            # The offset to center the layer on the background
+            offset_x, offset_y = (bg_width - src_width) // 2, (bg_height - src_height) // 2
 
-            x2 = 0
-            for tile_id in line.split(","):
-                if tile_id == '':
+            y2 = 0
+            for line in iter(self._root.find(xpath).text.splitlines()):
+                if line == '':
                     continue;
 
-                tile_id = int(tile_id)
+                x2 = 0
+                for tile_id in line.split(","):
+                    if tile_id == '':
+                        continue;
 
-                if tile_id != 0:
-                    for first, last, tsx in self._tilesets:
-                        if tile_id >= first and tile_id <= last:
-                            tsx.compose(dst_image, tile_id - first, x + x2 * self._tile_width + offset_x, y + y2 * self._tile_height + offset_y)
+                    tile_id = int(tile_id)
 
-                x2 = x2 + 1
-            y2 = y2 + 1
+                    if tile_id != 0:
+                        for first, last, tsx in self._tilesets:
+                            if tile_id >= first and tile_id <= last:
+                                tsx.compose(dst_image, tile_id - first, x + x2 * self._tile_width + offset_x, y + y2 * self._tile_height + offset_y)
+
+                    x2 = x2 + 1
+                y2 = y2 + 1
 
     def tiles(self, layer_path, indentation, depth):
         # Return the tiles of a layer.

@@ -68,7 +68,7 @@ The layers they will be exported and indexed in the order they are listed.
 Layers also be an array of layers that will be merged together to give you more
 freedom in your file:
 - graphics layers from an array will be drawn one onto the other to form a
-  single layer (((FIXME not implemented yet)))
+  single layer
 - objects layers from an array will have all their objects exported into a
   single layer
 - tiles layers from an array will be merged one onto the other to form a
