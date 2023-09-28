@@ -4,7 +4,10 @@
         "layer_1/graphics"
     ],
     "objects": [
-        "layer_0/objects",
+        [
+            "layer_0/doors",
+            "layer_0/spawns"
+        ],
         "layer_1/objects"
     ],
     "tiles": [

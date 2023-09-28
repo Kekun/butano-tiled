@@ -19,25 +19,19 @@ def flatten(list_of_list):
 
     return [item for sublist in list_of_list for item in sublist]
 
-def spans(list_of_list):
-    # Return a list of (index,length) pairs for a list of lists, so it can
-    # be flattened but its elements can still be found.
-
-    index_length_list = []
-    index = 0
-    for l in list_of_list:
-        length = len(l)
-        index_length_list.append((index, length))
-        index = index + length
-    return index_length_list
-
-def c_array(l):
+def inline_c_array(l):
     # Returns the C litteral array or struct for the elements in the list.
 
     return "{" + ",".join(map(str, l)) + "}"
 
-def ids(l):
-    return c_array(list(map(lambda i: i.id, flatten(l))))
+def multiline_c_array(l, indentation, depth):
+    # Returns the C litteral array or struct for the elements in the list.
+
+    outer_indentation = indentation * depth
+    inner_indentation = indentation * (depth + 1)
+    splitter = ",\n" + inner_indentation
+
+    return "{\n" + inner_indentation + splitter.join(map(str, l)) + "\n" + outer_indentation + "}"
 
 def bg_size(size):
     # Return a size rounded up to the next 256 multiple. This helps
@@ -46,13 +40,53 @@ def bg_size(size):
     return size if size % 256 == 0 else (size // 256 + 1) * 256
 
 class MapObject:
-    def __init__(self, x, y, id):
+    _next_id_value = 0
+
+    def __init__(self, x, y, id, object_class):
         self.x = x
         self.y = y
         self.id = id
+        self.object_class = object_class
+        self.id_value = MapObject._next_id_value
+        MapObject._next_id_value += 1
 
     def cpp_object(self, namespace):
-        return 'bntmx::map_object(bn::fixed_point({x}, {y}), {namespace}::{id})'.format(x=self.x, y=self.y, namespace=namespace, id=self.id)
+        if self.id is None:
+            return 'bntmx::map_object(bn::fixed_point({x}, {y}), {id_value})'.format(x=self.x, y=self.y, id_value=self.id_value)
+        else:
+            return 'bntmx::map_object(bn::fixed_point({x}, {y}), {namespace}::{id})'.format(x=self.x, y=self.y, namespace=namespace, id=self.id)
+
+class MapObjects:
+    def __init__(self):
+        self._map_objects = {"": []}
+
+    def add(self, map_object_class, map_object):
+        if map_object_class in self._map_objects:
+            self._map_objects[map_object_class].append(map_object)
+        else:
+            self._map_objects[map_object_class] = [map_object]
+
+    def ids(self):
+        # Return a list the ids of all map objects.
+
+        return [map_object.id for _, map_objects_list in self._map_objects.items() for map_object in map_objects_list]
+
+    # def ids(self):
+        # Return a dictionary whose keys are map object classes and whose values
+        # are lists of the ids of the objects from the given class.
+
+    #     ids = {}
+    #     for map_object_class in self._map_objects:
+    #         ids[map_object_class] = [map_object.id for map_object in self._map_objects[map_object_class]]
+    #     return ids
+
+    def flatten_list_of_dicts(list_of_dicts):
+        # Return a flattened list of dicts.
+
+        return [item for dictionary in list_of_dicts for key in dictionary for item in dictionary[key]]
+
+    def objects(self):
+        return self._map_objects
 
 class TSX:
     def __init__(self, filename):
@@ -166,18 +200,21 @@ class TMX:
 
         return self._tilesets
 
-    def objects(self, layer_path):
+    def objects(self, layer_paths):
         # Return the objects of a layer.
 
-        objects = []
-        xpath = self._objects_layer_path_to_xpath(layer_path) + "/object"
-        for item_node in self._root.findall(xpath):
-            item_id = item_node.get("name")
-            item_x, item_y = self._object_position(item_node)
-            if item_id is None or item_id == "":
-                logging.warning("{filename}: Unnamed item object at position {x}:{y}.".format(filename=self._filename, x=item_x, y=item_y))
-                continue
-            objects.append(MapObject(item_x, item_y, item_id))
+        if isinstance(layer_paths, str):
+            layer_paths = [layer_paths]
+
+        objects = MapObjects()
+        for layer_path in layer_paths:
+            xpath = self._objects_layer_path_to_xpath(layer_path) + "/object"
+            for item_node in self._root.findall(xpath):
+                item_id = item_node.get("name")
+                item_class = item_node.get("type")
+                item_class = "" if item_class is None else item_class
+                item_x, item_y = self._object_position(item_node)
+                objects.add(item_class, MapObject(item_x, item_y, item_id, item_class))
         return objects
 
     def compose(self, dst_image, layer_path, x, y):
@@ -212,18 +249,18 @@ class TMX:
                 x2 = x2 + 1
             y2 = y2 + 1
 
-    def tiles(self, layer_path):
+    def tiles(self, layer_path, indentation, depth):
         # Return the tiles of a layer.
 
         xpath = self._tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
         lines = iter(self._root.find(xpath).text.splitlines())
 
         line_is_not_empty = lambda line: line != ''
-        tile_id_to_enum_name = lambda tile_id: str(int(tile_id))
-        line_tile_id_to_enum_name = lambda line: ",".join(list(map(tile_id_to_enum_name, line.strip(",").split(","))))
+        validate_id = lambda id: str(int(id))
 
-        return '        {{\n            {tiles}\n        }}' \
-            .format(tiles=",\n            ".join(map(line_tile_id_to_enum_name, filter(line_is_not_empty, lines))))
+        cleanup_line = lambda line: ",".join(list(map(validate_id, line.strip(",").split(","))))
+
+        return multiline_c_array(list(map(cleanup_line, filter(line_is_not_empty, lines))), indentation, depth)
 
 class TMXConverter:
     def __init__(self, tmx_filename):
@@ -232,27 +269,45 @@ class TMXConverter:
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
         self._descriptor = json.load(descriptor)
 
-    def _spans(self, list_of_list):
-        # Return a list of (index,length) pairs for a list of lists, so it can
-        # be flattened but its elements can still be found.
+        # The list of MapObjects for the list of object layers
+        self._objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"]))
 
-        index_length_list = []
+    def _object_classes(self):
+        # Return the sorted set of map object class names in the whole map, including the "" class
+
+        return sorted(set([map_object_class for layer_map_objects in self._objects for map_object_class in layer_map_objects.objects().keys()]))
+
+    def _object_classes_enum(self):
+        # Return the list of enumeration definitions for the map object class names in the whole map, excluding the "" class
+
+        return list(map(lambda i_and_object_class: i_and_object_class[1] + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
+
+    def _all_objects(self):
+        # Return the list of map objects in the whole map
+
+        return [map_object for layer_map_objects in self._objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects]
+
+    def _object_ids_enum(self):
+        # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
+
+        return [str(map_object.id) + "=" + str(map_object.id_value) for map_object in self._all_objects() if map_object.id is not None]
+
+    def _object_spans(self):
+        # Return a list for each layer of lists of (index,length) pairs for each
+        # object of a given class in the layer, so objects can be flattened but
+        # they can still be found per layer and class.
+
+        index_lengths = []
         index = 0
-        for l in list_of_list:
-            length = len(l)
-            index_length_list.append((index, length))
-            index = index + length
-        return index_length_list
-
-    def _flatten(self, list_of_list):
-        # Return a flattened list of lists.
-
-        return [item for sublist in list_of_list for item in sublist]
-
-    def _objects(self):
-        # Return the nested lists of objects for the list of object layers
-
-        return list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"]))
+        object_classes = self._object_classes()
+        for layer in self._objects:
+            layer_index_lengths = []
+            for object_class in object_classes:
+                length = len(layer.objects()[object_class]) if object_class in layer.objects() else 0
+                layer_index_lengths.append((index, length))
+                index = index + length
+            index_lengths.append(layer_index_lengths)
+        return index_lengths
 
     def dependencies(self):
         return self._tmx.dependencies()
@@ -307,13 +362,15 @@ class TMXConverter:
         n_graphics_layers = len(self._descriptor["graphics"])
         n_objects_layers = len(self._descriptor["objects"])
         n_tiles_layers = len(self._descriptor["tiles"])
-        objects = self._objects()
+        objects = self._objects
+        object_classes = multiline_c_array(self._object_classes_enum(), "    ", 3)
+        object_ids = multiline_c_array(self._object_ids_enum(), "    ", 3)
         tileset_bounds = []
         for first, last, tsx in self._tmx.tilesets():
             enum_base = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
             tileset_bounds.append(enum_base + "=" + str(first))
             tileset_bounds.append(enum_base + "_LAST=" + str(last))
-        tile_ids = c_array(tileset_bounds)
+        tile_ids = multiline_c_array(tileset_bounds, "    ", 3)
 
         header = '''\
 #ifndef {guard}
@@ -321,12 +378,17 @@ class TMXConverter:
 
 #include "bntmx_map.h"
 
+#include <bn_regular_bg_items_{map_name}.h>
+
 namespace bntmx::maps
 {{
     class {map_name} : public map
     {{
         public:
+            enum object_class {object_classes};
+
             enum object_id {object_ids};
+
             enum tile_id {tile_ids};
 
             constexpr {map_name}()
@@ -397,14 +459,20 @@ namespace bntmx::maps
                 return {n_tiles_layers};
             }}
 
-            constexpr bn::regular_bg_item regular_bg_item() const;
-            constexpr const bn::span<const bntmx::map_object> objects_layer(int objects_layer_index) const;
-            constexpr const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const;
+            constexpr bn::regular_bg_item regular_bg_item() const
+            {{
+                return bn::regular_bg_items::{map_name};
+            }}
+
+            const bntmx::map_object object(int id) const;
+            const bn::span<const bntmx::map_object> objects(int objects_layer_index) const;
+            const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const;
+            const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const;
     }};
 }}
 
 #endif
-'''.format(guard=guard, map_name=self._name, object_ids=ids(objects), tile_ids=tile_ids, width_in_pixels=width_in_pixels, height_in_pixels=height_in_pixels, width_in_tiles=width_in_tiles, height_in_tiles=height_in_tiles, tile_width=tile_width, tile_height=tile_height, n_graphics_layers=n_graphics_layers, n_objects_layers=n_objects_layers, n_tiles_layers=n_tiles_layers, n_objects=len(objects))
+'''.format(guard=guard, map_name=self._name, object_classes=object_classes, object_ids=object_ids, tile_ids=tile_ids, width_in_pixels=width_in_pixels, height_in_pixels=height_in_pixels, width_in_tiles=width_in_tiles, height_in_tiles=height_in_tiles, tile_width=tile_width, tile_height=tile_height, n_graphics_layers=n_graphics_layers, n_objects_layers=n_objects_layers, n_tiles_layers=n_tiles_layers, n_objects=len(objects))
 
         return header
 
@@ -419,50 +487,65 @@ namespace bntmx::maps
         n_tiles_layers = len(self._descriptor["tiles"])
         size = width_in_tiles * height_in_tiles
 
-        tiles = ",\n".join(list(map(lambda layer_path: self._tmx.tiles(layer_path), self._descriptor["tiles"])))
-
-        objects = self._objects()
-        objects_spans = c_array(map(c_array, spans(objects)))
-        flattened_objects = flatten(objects)
+        n_objects_classes = len(self._object_classes())
+        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), "    ", 2), self._object_spans()), "    ", 1)
+        flattened_objects = self._all_objects()
+        n_objects = len(flattened_objects)
         # We can't have empty constexpr arrays, so let's have a dummy element
         # instead. It doesn't take much space and keeps the code more readable
         # than by dropping them.
-        cpp_objects = "{bntmx::map_object(bn::fixed_point(0, 0), -1)}"
+        cpp_objects = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
         if len(flattened_objects) > 0:
-            cpp_objects = c_array(list(map(lambda i: i.cpp_object(self._name), flattened_objects)))
+            cpp_objects = multiline_c_array(list(map(lambda i: i.cpp_object(self._name), flattened_objects)), "    ", 1)
+
+        tiles = multiline_c_array(list(map(lambda layer_path: self._tmx.tiles(layer_path, "    ", 2), self._descriptor["tiles"])), "    ", 1)
 
         source = '''\
 #include "{header_filename}"
 
-#include <bn_regular_bg_items_{map_name}.h>
 #include <bn_vector.h>
 
 namespace bntmx::maps
 {{
+    // Objects are sorted by layers, then within layers they are sorted by
+    // classes (with classless objects first), then within classes they are
+    // sorted in the order they are found.
+    // Because objects IDs are assigned in the same order, they are also sorted
+    // by ID.
     static constexpr bntmx::map_object _objects[] = {cpp_objects};
-    static constexpr struct {{int index; int length;}} _objects_spans[] = {objects_spans};
-    static const bntmx::map_tile _tiles[{n_tiles_layers}][{size}] = {{
-{tiles}
-    }};
 
-    constexpr bn::regular_bg_item {map_name}::regular_bg_item() const
+    // This purposefully doesn't use bn::span so we can use smaller types,
+    // saving ROM space.
+    static constexpr struct {{uint16_t index; uint16_t length;}} _objects_spans[{n_objects_layers}][{n_objects_classes}] = {objects_spans};
+
+    static const bntmx::map_tile _tiles[{n_tiles_layers}][{size}] = {tiles};
+
+    const bntmx::map_object {map_name}::object(int id) const
     {{
-        return bn::regular_bg_items::{map_name};
+        BN_ASSERT(id < {n_objects}, "Invalid object ID: ", id);
+        return _objects[id];
     }}
 
-    constexpr const bn::span<const bntmx::map_object> {map_name}::objects_layer(int objects_layer_index) const
+    const bn::span<const bntmx::map_object> {map_name}::objects(int objects_layer_index) const
     {{
         BN_ASSERT(objects_layer_index < {n_objects_layers}, "Invalid objects layer index: ", objects_layer_index);
-        return bn::span(&_objects[_objects_spans[objects_layer_index].index], _objects_spans[objects_layer_index].length);
+        return bn::span(&_objects[_objects_spans[objects_layer_index][0].index], _objects_spans[objects_layer_index][0].length);
     }}
 
-    constexpr const bn::span<const bntmx::map_tile> {map_name}::tiles(int tiles_layer_index) const
+    const bn::span<const bntmx::map_object> {map_name}::objects(int objects_layer_index, int objects_class) const
+    {{
+        BN_ASSERT(objects_layer_index < {n_objects_layers}, "Invalid objects layer index: ", objects_layer_index);
+        BN_ASSERT(objects_class < {n_objects_classes}, "Invalid objects class: ", objects_class);
+        return bn::span(&_objects[_objects_spans[objects_layer_index][objects_class].index], _objects_spans[objects_layer_index][objects_class].length);
+    }}
+
+    const bn::span<const bntmx::map_tile> {map_name}::tiles(int tiles_layer_index) const
     {{
         BN_ASSERT(tiles_layer_index < {n_tiles_layers}, "Invalid tiles layer index: ", tiles_layer_index);
         return bn::span(_tiles[tiles_layer_index], {size});
     }}
 }}
-'''.format(header_filename=os.path.basename(header_filename), map_name=self._name, n_objects_layers=n_objects_layers, n_tiles_layers=n_tiles_layers, size=str(size), tiles=tiles, objects_spans=objects_spans, cpp_objects=cpp_objects)
+'''.format(header_filename=os.path.basename(header_filename), map_name=self._name, n_objects_layers=n_objects_layers, n_tiles_layers=n_tiles_layers, size=str(size), tiles=tiles, objects_spans=objects_spans, n_objects=n_objects, n_objects_classes=n_objects_classes, cpp_objects=cpp_objects)
 
         return source
 
@@ -482,6 +565,8 @@ def process(maps_dirs, build_dir):
                     os.makedirs(build_include_dir)
                 if not os.path.exists(build_src_dir):
                     os.makedirs(build_src_dir)
+
+                MapObject._next_id_value = 0
 
                 tmx_filename = os.path.join(maps_dir, map_file)
                 converter = TMXConverter(tmx_filename)

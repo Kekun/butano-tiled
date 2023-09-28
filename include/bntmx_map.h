@@ -87,16 +87,29 @@ public:
     virtual constexpr bn::regular_bg_item regular_bg_item() const = 0;
 
     /**
-     * @brief Returns the objects of the given layer of the map.
+     * @brief Returns the object with the given ID.
+     * @param object_id ID of the objects.
+     */
+    virtual const bntmx::map_object object(int object_id) const = 0;
+
+    /**
+     * @brief Returns the classless objects of the given layer of the map.
      * @param objects_layer_index Index of the objects layer.
      */
-    virtual constexpr const bn::span<const bntmx::map_object> objects_layer(int objects_layer_index) const = 0;
+    virtual const bn::span<const bntmx::map_object> objects(int objects_layer_index) const = 0;
+
+    /**
+     * @brief Returns the objects of the given class and layer of the map.
+     * @param objects_layer_index Index of the objects layer.
+     * @param objects_class Class of the objects.
+     */
+    virtual const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const = 0;
 
     /**
      * @brief Returns the tiles of the given layer of the map.
      * @param tiles_layer_index Index of the tiles layer.
      */
-    virtual constexpr const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const = 0;
+    virtual const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const = 0;
 };
 
 }

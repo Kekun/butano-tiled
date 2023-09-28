@@ -66,13 +66,13 @@
 258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258,258
 </data>
   </layer>
-  <objectgroup id="7" name="objects">
-   <object id="1" type="Door" gid="261" x="624" y="112" width="32" height="32"/>
-   <object id="2" type="Door" gid="261" x="352" y="128" width="32" height="32"/>
+  <objectgroup id="7" name="doors">
+   <object id="1" type="DOOR" gid="261" x="624" y="112" width="32" height="32"/>
+   <object id="2" type="DOOR" gid="261" x="352" y="128" width="32" height="32"/>
   </objectgroup>
   <objectgroup id="8" name="spawns">
-   <object id="8" name="TO_SHION_HOUSE" gid="260" x="-16" y="128" width="32" height="32"/>
-   <object id="9" name="TO_PURAPRIL_CASTLE_ENTRANCE" gid="260" x="1008" y="112" width="32" height="32"/>
+   <object id="8" type="SPAWN" name="TO_SHION_HOUSE" gid="260" x="-16" y="128" width="32" height="32"/>
+   <object id="9" type="SPAWN" name="TO_PURAPRIL_CASTLE_ENTRANCE" gid="260" x="1008" y="112" width="32" height="32"/>"
   </objectgroup>
  </group>
 </map>

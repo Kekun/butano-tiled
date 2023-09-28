@@ -14,7 +14,7 @@ namespace bntmx
 struct map_object
 {
     bn::fixed_point position;
-    int id;
+    uint16_t id;
 };
 
 }

@@ -54,15 +54,51 @@ Maps are *.tmx files you can build with [Tiled](https://www.mapeditor.org/).
 
 Each map must have a *.json descriptor whose root object expects the following
 fields:
-- `"graphics"`: the names of the layers to draw as a `bn::regular_bg_item`
-- `"objects"`: the names of the layers whose objects should be exported
-- `"tiles"`: the names of the layers whose tiles should be exported
+- `"graphics"`: the paths to the layers to draw as a `bn::regular_bg_item`
+- `"objects"`: the paths to the layers whose objects should be exported
+- `"tiles"`: the paths to the layers whose tiles should be exported
 
-The names of the layers are the ones from the *.tmx file, they will be exported
-and indexed in the order they are listed.
-
+The paths to layers are the names of the groups and layers from the *.tmx file
+joined with the / separator.
 You can access the layer "mylayer" in the group "mygroup" by writing a path with
 the / separator like this : "mygroup/mylayer".
+
+The layers they will be exported and indexed in the order they are listed.
+
+Layers also be an array of layers that will be merged together to give you more
+freedom in your file:
+- graphics layers from an array will be drawn one onto the other to form a
+  single layer (((FIXME not implemented yet)))
+- objects layers from an array will have all their objects exported into a
+  single layer
+- tiles layers from an array will be merged one onto the other to form a
+  single layer (((FIXME not implemented yet)))
+
+Here is an example of what a *.json decriptor could look like:
+```json
+{
+    "graphics": [
+        "canopy",
+        [
+            "floor",
+            "walls"
+        ]
+    ],
+    "objects": [
+        [],
+        [
+            "doors",
+            "enemies",
+            "npcs",
+            "teleporters"
+        ],
+    ],
+    "tiles": [
+        "wall_collisions",
+        "ground_collisions"
+    ]
+}
+```
 
 ## Graphics
 
@@ -75,6 +111,24 @@ You can access the graphics via `bntmx::map::regular_bg_item()` or like any
 other bundled `bn::regular_bg_item` asset.
 
 ## Objects
+
+Each objects layer is exported as lists of objects of type `bntmx::map_object`,
+a list of object IDs and a list of object classes.
+Objects have an unique ID and a position.
+Object IDs are integers in the [0..65535] range, so you can have up to 65536
+different objects in a map, which should be more than enough.
+
+The names and classes of the objects are exported as IDs in `enum object_id` and
+`enum object_class` found in the namespace of the generated map class.
+Objects of each class as well as classless objects are stored separately from
+each other for each layer.
+Please use valid C++ enumeration value names for your object names and classes.
+
+The ID of an object isn't the one defined in the map file, so you have to name
+an object to refer to it.
+The position of an object isn't the one defined in the map file but its center.
+
+You can access the objects via `bntmx::map::objects()`.
 
 ## Tiles
 
@@ -99,19 +153,21 @@ You can access the tiles via `bntmx::map::tiles()`.
 Draw multiple layers as one, e.g. a `"village"` layer could be replaced by the
 `["ground","buildings"]` list of layers drawn one over the other.
 
+Merge tiles layers too, for consistency with graphics and objects layers
+
 Split the objects in 256x256 chunks to allow saving some collision detections.
 
-How to handle the classes of objects? With a separate set accessible e.g. via a
-"class" enum parameter? What to do with unnamed objects? And with duplicated
-objects? E.g. `objects_layer(int objects_layer_index)`
-
 Rename the script and maybe move it to a directory, if deemed relevant.
+Maybe it should be `__init__.py`?
 
 Find free graphics (tileset, objects) and build a map with them.
-
-Directly store the object spans.
 
 Maybe split the tile arrays in chunks, compress the chunks and decompress only a
 few chunks  at a time in RAM. Or keep them
 
 Allow parametrizing the BG and its type.
+
+Maybe allow getting the layer (and class?) for a given object ID? And position
+apart too.
+
+Change ID to name where relevant
