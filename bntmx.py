@@ -120,7 +120,11 @@ class TSX:
         dst_image.alpha_composite(self._image, (x, y), (src_x, src_y, src_x + self._tile_width, src_y + self._tile_height))
 
 class TMX:
-    def __init__(self, filename):
+    def __init__(self, filename: str):
+        """"
+        :param filename: the filename of the *.tmx file to parse
+        """
+
         self._filename = os.path.realpath(filename)
         self._root = ET.parse(self._filename)
 
@@ -138,7 +142,14 @@ class TMX:
             last_id = first_id + tsx.n_tiles() - 1
             self._tilesets.append((first_id, last_id, tsx))
 
-    def _object_position(self, object_node):
+    def _object_position(self, object_node: ET.Element) -> tuple[int,int]:
+        """"
+        Return the center position of an object.
+
+        :param object_node: the node of the object
+        :returns: the abscissa and ordinate of the center of the object
+        """
+
         # While the origin of maps is their top-left corner, the origin of
         # objects is their bottom left one, hence we have to substract half
         # their height and not add it to get their center.
@@ -146,19 +157,13 @@ class TMX:
         y = int(object_node.get("y")) - int(object_node.get("height")) // 2
         return x, y
 
-    def _tiles_layer_path_to_xpath(self, layer_path):
-        # Convert a layer path from the JSON descriptor into the XPath to the layer's node
+    def _objects_layer_path_to_xpath(self, layer_path: str) -> str:
+        """"
+        Return the XPath to the node of the given an objects layer path from the JSON descriptor.
 
-        layer_path_elements = layer_path.split("/")
-        xpath = "."
-        for group in layer_path_elements[:-1]:
-            xpath += "/group[@name='" + group + "']"
-        xpath += "/layer[@name='" + layer_path_elements[-1] + "']"
-
-        return xpath
-
-    def _objects_layer_path_to_xpath(self, layer_path):
-        # Convert a layer path from the JSON descriptor into the XPath to the layer's node
+        :param layer_path: the path to the objects layer
+        :returns: the XPath
+        """
 
         layer_path_elements = layer_path.split("/")
         xpath = "."
@@ -168,40 +173,88 @@ class TMX:
 
         return xpath
 
-    def dependencies(self):
+    def _tiles_layer_path_to_xpath(self, layer_path: str) -> str:
+        """"
+        Return the XPath to the node of the given an tiles layer path from the JSON descriptor.
+
+        :param layer_path: the path to the tiles layer
+        :returns: the XPath
+        """
+
+        layer_path_elements = layer_path.split("/")
+        xpath = "."
+        for group in layer_path_elements[:-1]:
+            xpath += "/group[@name='" + group + "']"
+        xpath += "/layer[@name='" + layer_path_elements[-1] + "']"
+
+        return xpath
+
+    def dependencies(self) -> list[str]:
+        """"
+        Return the list of filenames the map depends on.
+
+        :returns: the list of filenames the map depends on
+        """
+
         deps = []
         for first, last, tsx in self._tilesets:
             deps.append(tsx.filename())
             deps.append(tsx.image_filename())
         return deps
 
-    def dimensions_in_pixels(self):
-        # Return the size of the map in pixels
+    def dimensions_in_pixels(self) -> tuple[int,int]:
+        """"
+        Return the width and height of the map in pixels.
+
+        :returns: the width and height of the map in pixels
+        """
 
         return (self._columns * self._tile_width, self._lines * self._tile_height)
 
-    def dimensions_in_tiles(self):
-        # Return the size of the map in tiles
+    def dimensions_in_tiles(self) -> tuple[int,int]:
+        """"
+        Return the width and height of the map in tiles.
+
+        :returns: the width and height of the map in tiles
+        """
 
         return (self._columns, self._lines)
 
-    def tile_dimensions(self):
-        # Return the size of the tiles in pixel
+    def tile_dimensions(self) -> tuple[int,int]:
+        """"
+        Return the width and height of the tiles in pixel.
+
+        :returns: the width and height of the tiles in pixel
+        """
 
         return (self._tile_width, self._tile_height)
 
-    def background_color(self):
-        # Return the background color of the map.
+    def background_color(self) -> str:
+        """"
+        Return the background color hex code of the map, with the # prefix.
+
+        :returns: the background color hex code
+        """
 
         return self._root.find(".").get("backgroundcolor")
 
-    def tilesets(self):
-        # Return the tilesets.
+    def tilesets(self) -> list[tuple[int,int,TSX]]:
+        """"
+        Return the list of tilesets consisting of their first ID in the map,
+        their last ID in the map, and their TSX object.
+
+        :returns: the tilesets
+        """
 
         return self._tilesets
 
-    def objects(self, layer_paths):
-        # Return the objects of a layer.
+    def objects(self, layer_paths: list[str]|str) -> MapObjects:
+        """"
+        Return the objects of layers. The objects are sorted by class in a dict.
+
+        :param layer_paths: the paths (or single path) to the tiles layers
+        :returns: the objects
+        """
 
         if isinstance(layer_paths, str):
             layer_paths = [layer_paths]
@@ -217,8 +270,15 @@ class TMX:
                 objects.add(item_class, MapObject(item_x, item_y, item_id, item_class))
         return objects
 
-    def compose(self, dst_image, layer_paths, x, y):
-        # Compose a layer on an image
+    def compose(self, dst_image: PIL.Image.Image, layer_paths: list[str]|str, x: int, y: int):
+        """"
+        Compose layers on an image. Each layer in composed over the previous ones.
+
+        :param dst_image: the image to draw the layers on
+        :param layer_paths: the paths (or single path) to the tiles layers
+        :param x: the abscissa of the top-left corner from which to draw
+        :param y: the ordinate of the top-left corner from which to draw
+        """
 
         if isinstance(layer_paths, str):
             layer_paths = [layer_paths]
@@ -253,8 +313,15 @@ class TMX:
                     x2 = x2 + 1
                 y2 = y2 + 1
 
-    def tiles(self, layer_path, indentation, depth):
-        # Return the tiles of a layer.
+    def tiles(self, layer_path: str, indentation: str, depth: int) -> str:
+        """"
+        Return the C or C++ array literal for tiles of a layer.
+
+        :param layer_path: the path to the tiles layer
+        :param indentation: the characters to use for an indentation level
+        :param depth: the depth of the indentation
+        :returns: the array literal
+        """
 
         # Parse the CSV tiles data to turn in into a Python list of tile IDs.
         line_is_not_empty = lambda line: line != ''
