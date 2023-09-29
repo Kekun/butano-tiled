@@ -89,7 +89,11 @@ class MapObjects:
         return self._map_objects
 
 class TSX:
-    def __init__(self, filename):
+    def __init__(self, filename: str):
+        """"
+        :param filename: the filename of the *.tsx file to parse
+        """
+
         self._filename = os.path.realpath(filename)
         self._root = ET.parse(filename)
 
@@ -100,20 +104,43 @@ class TSX:
         self._lines = self._n_tiles // self._columns
         self._image = Image.open(self.image_filename())
 
-    def filename(self):
+    def filename(self) -> str:
+        """"
+        Return the filename of the *.tsx file.
+
+        :returns: the filename of the *.tsx file
+        """
+
         return self._filename
 
-    def image_filename(self):
+    def image_filename(self) -> str:
+        """"
+        Return the filename of the tileset's image.
+
+        :returns: the filename of the tileset's image
+        """
+
         directory = os.path.dirname(self._filename)
         return os.path.join(directory, self._root.find("./image").get("source"))
 
-    def n_tiles(self):
-        # Return the number of tiles in the set
+    def n_tiles(self) -> int:
+        """"
+        Return the number of tiles in the set.
+
+        :returns: the number of tiles in the set
+        """
 
         return self._n_tiles
 
-    def compose(self, dst_image, tile_id, x, y):
-        # Compose a tile on an image
+    def compose(self, dst_image: PIL.Image.Image, tile_id: int, x: int, y: int):
+        """"
+        Compose a tile on an image.
+
+        :param dst_image: the image to draw the tile on
+        :param tile_id: the ID of the tile to draw
+        :param x: the abscissa of the top-left corner from which to draw
+        :param y: the ordinate of the top-left corner from which to draw
+        """
 
         src_x = (tile_id % self._columns) * self._tile_width
         src_y = (tile_id // self._lines) * self._tile_height
