@@ -42,7 +42,14 @@ def bg_size(size):
 class MapObject:
     _next_id_value = 0
 
-    def __init__(self, x, y, id, object_class):
+    def __init__(self, x: int, y: int, id: int, object_class: str):
+        """"
+        :param x: the abscissa of the center of the object
+        :param y: the ordinate of the center of the object
+        :param id: the ID of the oject
+        :param object_class: the class of the object
+        """
+
         self.x = x
         self.y = y
         self.id = id
@@ -50,7 +57,14 @@ class MapObject:
         self.id_value = MapObject._next_id_value
         MapObject._next_id_value += 1
 
-    def cpp_object(self, namespace):
+    def cpp_object(self, namespace: str) -> str:
+        """"
+        Return the C++ literal of the object.
+
+        :param namespace: the namespace for the object IDs
+        :returns: the C++ literal of the object
+        """
+
         if self.id is None:
             return 'bntmx::map_object(bn::fixed_point({x}, {y}), {id_value})'.format(x=self.x, y=self.y, id_value=self.id_value)
         else:
