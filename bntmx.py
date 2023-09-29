@@ -256,15 +256,20 @@ class TMX:
     def tiles(self, layer_path, indentation, depth):
         # Return the tiles of a layer.
 
-        xpath = self._tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
-        lines = iter(self._root.find(xpath).text.splitlines())
-
+        # Parse the CSV tiles data to turn in into a Python list of tile IDs.
         line_is_not_empty = lambda line: line != ''
-        validate_id = lambda id: str(int(id))
+        xpath = self._tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
+        lines = filter(line_is_not_empty, self._root.find(xpath).text.splitlines())
+        tiles = [str(int(tile)) for line in lines for tile in line.strip(",").split(",")]
 
-        cleanup_line = lambda line: ",".join(list(map(validate_id, line.strip(",").split(","))))
+        # Check the list of tile IDs is valid.
+        n_tiles = len(tiles)
+        expected_n_tiles = self._columns * self._lines
+        if n_tiles != expected_n_tiles:
+            logging.critical(self._filename + ": " + layer_path + ": Invalid number of tiles, expected " + str(expected_n_tiles) + ", got " + str(n_tiles))
 
-        return multiline_c_array(list(map(cleanup_line, filter(line_is_not_empty, lines))), indentation, depth)
+        # Convert the Python list into a C or C++ array literal, matching lines and columns to the map for readability.
+        return multiline_c_array([",".join(tiles[i:i + self._columns]) for i in range(0, len(tiles), self._columns)], indentation, depth)
 
 class TMXConverter:
     def __init__(self, tmx_filename):
