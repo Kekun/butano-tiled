@@ -60,32 +60,34 @@ class MapObjects:
     def __init__(self):
         self._map_objects = {"": []}
 
-    def add(self, map_object_class, map_object):
-        if map_object_class in self._map_objects:
-            self._map_objects[map_object_class].append(map_object)
-        else:
-            self._map_objects[map_object_class] = [map_object]
+    def add(self, map_object: MapObject):
+        """"
+        Add an object for the given class.
 
-    def ids(self):
-        # Return a list the ids of all map objects.
+        :param map_object: the object
+        """
+
+        if map_object.object_class in self._map_objects:
+            self._map_objects[map_object.object_class].append(map_object)
+        else:
+            self._map_objects[map_object.object_class] = [map_object]
+
+    def ids(self) -> list[int]:
+        """"
+        Return a list the ids of all map objects.
+
+        :returns: a list the ids of all map objects
+        """
 
         return [map_object.id for _, map_objects_list in self._map_objects.items() for map_object in map_objects_list]
 
-    # def ids(self):
-        # Return a dictionary whose keys are map object classes and whose values
-        # are lists of the ids of the objects from the given class.
+    def objects(self) -> dict[str,list[MapObject]]:
+        """"
+        Return the dict of objects per class.
 
-    #     ids = {}
-    #     for map_object_class in self._map_objects:
-    #         ids[map_object_class] = [map_object.id for map_object in self._map_objects[map_object_class]]
-    #     return ids
+        :returns: the dict of objects per class
+        """
 
-    def flatten_list_of_dicts(list_of_dicts):
-        # Return a flattened list of dicts.
-
-        return [item for dictionary in list_of_dicts for key in dictionary for item in dictionary[key]]
-
-    def objects(self):
         return self._map_objects
 
 class TSX:
@@ -294,7 +296,7 @@ class TMX:
                 item_class = item_node.get("type")
                 item_class = "" if item_class is None else item_class
                 item_x, item_y = self._object_position(item_node)
-                objects.add(item_class, MapObject(item_x, item_y, item_id, item_class))
+                objects.add(MapObject(item_x, item_y, item_id, item_class))
         return objects
 
     def compose(self, dst_image: PIL.Image.Image, layer_paths: list[str]|str, x: int, y: int):
