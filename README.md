@@ -150,9 +150,6 @@ You can access the tiles via `bntmx::map::tiles()`.
 
 ## To Do
 
-Draw multiple layers as one, e.g. a `"village"` layer could be replaced by the
-`["ground","buildings"]` list of layers drawn one over the other.
-
 Merge tiles layers too, for consistency with graphics and objects layers
 
 Split the objects in 256x256 chunks to allow saving some collision detections.
