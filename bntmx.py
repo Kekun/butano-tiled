@@ -14,18 +14,32 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-def flatten(list_of_list):
-    # Return a flattened list of lists.
+def inline_c_array(l: list) -> str:
+    """"
+    Return the inline C or C++ literal array or struct for the elements in the list.
 
-    return [item for sublist in list_of_list for item in sublist]
-
-def inline_c_array(l):
-    # Returns the C litteral array or struct for the elements in the list.
+    :param l: the list of the array elements
+    :returns: the inline array literal
+    """
 
     return "{" + ",".join(map(str, l)) + "}"
 
-def multiline_c_array(l, indentation, depth):
-    # Returns the C litteral array or struct for the elements in the list.
+def multiline_c_array(l: list, indentation: str, depth: int) -> str:
+    """"
+    Return the multiline C or C++ literal array or struct for the elements in the list.
+
+    :param l: the list of the array elements
+    :param indentation: the characters to use for an indentation level
+    :param depth: the depth of the indentation
+    :returns: the multiline array literal
+    """
+
+    def tiles(self, layer_path: str, indentation: str, depth: int) -> str:
+        """"
+        Return the C or C++ array literal for tiles of a layer.
+
+        :param layer_path: the path to the tiles layer
+        """
 
     outer_indentation = indentation * depth
     inner_indentation = indentation * (depth + 1)
@@ -33,9 +47,14 @@ def multiline_c_array(l, indentation, depth):
 
     return "{\n" + inner_indentation + splitter.join(map(str, l)) + "\n" + outer_indentation + "}"
 
-def bg_size(size):
-    # Return a size rounded up to the next 256 multiple. This helps
-    # converting the size of a map into the size of its background images.
+def bg_size(size: int):
+    """"
+    Return a size rounded up to the next 256 multiple. This helps converting the
+    size of a map into the size of its background images.
+
+    :param size: the size of the map
+    :returns: the size of the background that can fit the requested size
+    """
 
     return size if size % 256 == 0 else (size // 256 + 1) * 256
 
