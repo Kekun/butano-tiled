@@ -8,6 +8,7 @@ from tmx import TMX
 import argparse
 import json
 import os
+import bntemplate
 
 def inline_c_array(l: list) -> str:
     """
@@ -146,17 +147,9 @@ class TMXConverter:
         _, src_height = self._tmx.dimensions_in_pixels()
         bg_height = bg_size(src_height)
 
-        descriptor = '''\
-{{
-    "type": "regular_bg",
-    "bpp_mode": "bpp_4_auto",
-    "height": {bg_height}
-}}
-'''.format(bg_height=bg_height)
+        return bntemplate.graphics.format(bg_height=bg_height)
 
-        return descriptor
-
-    def cpp_header(self):
+    def butano_header(self):
         # Convert the TMX into its C++ header.
 
         guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
@@ -176,111 +169,24 @@ class TMXConverter:
             tileset_bounds.append(enum_base + "_LAST=" + str(last))
         tile_ids = multiline_c_array(tileset_bounds, "    ", 3)
 
-        header = '''\
-#ifndef {guard}
-#define {guard}
+        return bntemplate.header.format(
+            guard=guard,
+            height_in_pixels=height_in_pixels,
+            height_in_tiles=height_in_tiles,
+            map_name=self._name,
+            n_graphics_layers=n_graphics_layers,
+            n_objects_layers=n_objects_layers,
+            n_objects=len(objects),
+            n_tiles_layers=n_tiles_layers,
+            object_classes=object_classes,
+            object_ids=object_ids,
+            tile_height=tile_height,
+            tile_ids=tile_ids,
+            tile_width=tile_width,
+            width_in_pixels=width_in_pixels,
+            width_in_tiles=width_in_tiles)
 
-#include "bntmx_map.h"
-
-#include <bn_regular_bg_items_{map_name}.h>
-
-namespace bntmx::maps
-{{
-    class {map_name} : public map
-    {{
-        public:
-            enum object_class {object_classes};
-
-            enum object_id {object_ids};
-
-            enum tile_id {tile_ids};
-
-            constexpr {map_name}()
-            {{
-            }}
-
-            constexpr ~{map_name}()
-            {{
-            }}
-
-            constexpr bn::size dimensions_in_pixels() const
-            {{
-                return bn::size({width_in_pixels}, {height_in_pixels});
-            }}
-
-            constexpr bn::size dimensions_in_tiles() const
-            {{
-                return bn::size({width_in_tiles}, {height_in_tiles});
-            }}
-
-            constexpr bn::size tile_dimensions() const
-            {{
-                return bn::size({tile_width}, {tile_height});
-            }}
-
-            constexpr int width_in_pixels() const
-            {{
-                return {width_in_pixels};
-            }}
-
-            constexpr int height_in_pixels() const
-            {{
-                return {height_in_pixels};
-            }}
-
-            constexpr int width_in_tiles() const
-            {{
-                return {width_in_tiles};
-            }}
-
-            constexpr int height_in_tiles() const
-            {{
-                return {height_in_tiles};
-            }}
-
-            constexpr int tile_width() const
-            {{
-                return {tile_width};
-            }}
-
-            constexpr int tile_height() const
-            {{
-                return {tile_height};
-            }}
-
-            constexpr int n_graphics_layers() const
-            {{
-                return {n_graphics_layers};
-            }}
-
-            constexpr int n_objects_layers() const
-            {{
-                return {n_objects_layers};
-            }}
-
-            constexpr int n_tiles_layers() const
-            {{
-                return {n_tiles_layers};
-            }}
-
-            constexpr bn::regular_bg_item regular_bg_item() const
-            {{
-                return bn::regular_bg_items::{map_name};
-            }}
-
-            const bntmx::map_object object(int id) const;
-            const bn::span<const bntmx::map_object> objects(int objects_layer_index) const;
-            const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const;
-            const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const;
-    }};
-}}
-
-#endif
-'''.format(guard=guard, map_name=self._name, object_classes=object_classes, object_ids=object_ids, tile_ids=tile_ids, width_in_pixels=width_in_pixels, height_in_pixels=height_in_pixels, width_in_tiles=width_in_tiles, height_in_tiles=height_in_tiles, tile_width=tile_width, tile_height=tile_height, n_graphics_layers=n_graphics_layers, n_objects_layers=n_objects_layers, n_tiles_layers=n_tiles_layers, n_objects=len(objects))
-
-        return header
-
-    def cpp_source(self):
+    def butano_source(self):
         # Convert the TMX into its C++ source.
 
         header_filename = "bntmx_maps_" + self._name + ".h"
@@ -296,69 +202,32 @@ namespace bntmx::maps
         objects = self._all_objects()
         n_objects = len(objects)
         if n_objects > 0:
-            object_to_cpp_literal = lambda o: 'bntmx::map_object(bn::fixed_point({x}, {y}), {id})'.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
-            cpp_objects = multiline_c_array(list(map(object_to_cpp_literal, objects)), "    ", 1)
+            object_to_cpp_literal = lambda o: bntemplate.map_object.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
+            objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), "    ", 1)
         else:
             # We can't have empty constexpr arrays, so let's have a dummy
             # element instead. It doesn't take much space and keeps the code
             # more readable than by dropping them.
-            cpp_objects = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
+            objects_literal = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
 
         # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
         tiles_to_array_literal = lambda tiles: multiline_c_array([",".join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], "    ", 2)
         # Get the C or C++ array literal of tiles for the given tiles layer path.
         tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
         # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
-        tiles = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"])), "    ", 1)
+        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"])), "    ", 1)
 
-        source = '''\
-#include "{header_filename}"
-
-#include <bn_vector.h>
-
-namespace bntmx::maps
-{{
-    // Objects are sorted by layers, then within layers they are sorted by
-    // classes (with classless objects first), then within classes they are
-    // sorted in the order they are found.
-    // Because objects IDs are assigned in the same order, they are also sorted
-    // by ID.
-    static constexpr bntmx::map_object _objects[] = {cpp_objects};
-
-    // This purposefully doesn't use bn::span so we can use smaller types,
-    // saving ROM space.
-    static constexpr struct {{uint16_t index; uint16_t length;}} _objects_spans[{n_objects_layers}][{n_objects_classes}] = {objects_spans};
-
-    static const bntmx::map_tile _tiles[{n_tiles_layers}][{size}] = {tiles};
-
-    const bntmx::map_object {map_name}::object(int id) const
-    {{
-        BN_ASSERT(id < {n_objects}, "Invalid object ID: ", id);
-        return _objects[id];
-    }}
-
-    const bn::span<const bntmx::map_object> {map_name}::objects(int objects_layer_index) const
-    {{
-        BN_ASSERT(objects_layer_index < {n_objects_layers}, "Invalid objects layer index: ", objects_layer_index);
-        return bn::span(&_objects[_objects_spans[objects_layer_index][0].index], _objects_spans[objects_layer_index][0].length);
-    }}
-
-    const bn::span<const bntmx::map_object> {map_name}::objects(int objects_layer_index, int objects_class) const
-    {{
-        BN_ASSERT(objects_layer_index < {n_objects_layers}, "Invalid objects layer index: ", objects_layer_index);
-        BN_ASSERT(objects_class < {n_objects_classes}, "Invalid objects class: ", objects_class);
-        return bn::span(&_objects[_objects_spans[objects_layer_index][objects_class].index], _objects_spans[objects_layer_index][objects_class].length);
-    }}
-
-    const bn::span<const bntmx::map_tile> {map_name}::tiles(int tiles_layer_index) const
-    {{
-        BN_ASSERT(tiles_layer_index < {n_tiles_layers}, "Invalid tiles layer index: ", tiles_layer_index);
-        return bn::span(_tiles[tiles_layer_index], {size});
-    }}
-}}
-'''.format(header_filename=os.path.basename(header_filename), map_name=self._name, n_objects_layers=n_objects_layers, n_tiles_layers=n_tiles_layers, size=str(size), tiles=tiles, objects_spans=objects_spans, n_objects=n_objects, n_objects_classes=n_objects_classes, cpp_objects=cpp_objects)
-
-        return source
+        return bntemplate.source.format(
+            header_filename=os.path.basename(header_filename),
+            map_name=self._name,
+            n_objects_classes=n_objects_classes,
+            n_objects_layers=n_objects_layers,
+            n_objects=n_objects,
+            n_tiles_layers=n_tiles_layers,
+            objects=objects_literal,
+            objects_spans=objects_spans,
+            size=str(size),
+            tiles=tiles_literal)
 
 def process(maps_dirs, build_dir):
     for maps_dir in maps_dirs:
@@ -404,13 +273,13 @@ def process(maps_dirs, build_dir):
                 bmp_json_file.close()
 
                 # Export the C++ header
-                header = converter.cpp_header()
+                header = converter.butano_header()
                 output_file = open(header_filename, "w")
                 output_file.write(header)
                 output_file.close()
 
                 # Export the C++ source
-                source = converter.cpp_source()
+                source = converter.butano_source()
                 output_file = open(source_filename, "w")
                 output_file.write(source)
                 output_file.close()
