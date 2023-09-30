@@ -15,7 +15,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 def inline_c_array(l: list) -> str:
-    """"
+    """
     Return the inline C or C++ literal array or struct for the elements in the list.
 
     :param l: the list of the array elements
@@ -25,7 +25,7 @@ def inline_c_array(l: list) -> str:
     return "{" + ",".join(map(str, l)) + "}"
 
 def multiline_c_array(l: list, indentation: str, depth: int) -> str:
-    """"
+    """
     Return the multiline C or C++ literal array or struct for the elements in the list.
 
     :param l: the list of the array elements
@@ -41,7 +41,7 @@ def multiline_c_array(l: list, indentation: str, depth: int) -> str:
     return "{\n" + inner_indentation + splitter.join(map(str, l)) + "\n" + outer_indentation + "}"
 
 def bg_size(size: int):
-    """"
+    """
     Return a size rounded up to the next 256 multiple. This helps converting the
     size of a map into the size of its background images.
 
@@ -55,7 +55,7 @@ class MapObject:
     _next_id_value = 0
 
     def __init__(self, x: int, y: int, id: int, object_class: str):
-        """"
+        """
         :param x: the abscissa of the center of the object
         :param y: the ordinate of the center of the object
         :param id: the ID of the oject
@@ -70,7 +70,7 @@ class MapObject:
         MapObject._next_id_value += 1
 
     def cpp_object(self, namespace: str) -> str:
-        """"
+        """
         Return the C++ literal of the object.
 
         :param namespace: the namespace for the object IDs
@@ -87,7 +87,7 @@ class MapObjects:
         self._map_objects = {"": []}
 
     def add(self, map_object: MapObject):
-        """"
+        """
         Add an object for the given class.
 
         :param map_object: the object
@@ -99,7 +99,7 @@ class MapObjects:
             self._map_objects[map_object.object_class] = [map_object]
 
     def ids(self) -> list[int]:
-        """"
+        """
         Return a list the ids of all map objects.
 
         :returns: a list the ids of all map objects
@@ -108,7 +108,7 @@ class MapObjects:
         return [map_object.id for _, map_objects_list in self._map_objects.items() for map_object in map_objects_list]
 
     def objects(self) -> dict[str,list[MapObject]]:
-        """"
+        """
         Return the dict of objects per class.
 
         :returns: the dict of objects per class
@@ -118,7 +118,7 @@ class MapObjects:
 
 class TSX:
     def __init__(self, filename: str):
-        """"
+        """
         :param filename: the filename of the *.tsx file to parse
         """
 
@@ -133,7 +133,7 @@ class TSX:
         self._image = Image.open(self.image_filename())
 
     def filename(self) -> str:
-        """"
+        """
         Return the filename of the *.tsx file.
 
         :returns: the filename of the *.tsx file
@@ -142,7 +142,7 @@ class TSX:
         return self._filename
 
     def image_filename(self) -> str:
-        """"
+        """
         Return the filename of the tileset's image.
 
         :returns: the filename of the tileset's image
@@ -152,7 +152,7 @@ class TSX:
         return os.path.join(directory, self._root.find("./image").get("source"))
 
     def n_tiles(self) -> int:
-        """"
+        """
         Return the number of tiles in the set.
 
         :returns: the number of tiles in the set
@@ -161,7 +161,7 @@ class TSX:
         return self._n_tiles
 
     def compose(self, dst_image: PIL.Image.Image, tile_id: int, x: int, y: int):
-        """"
+        """
         Compose a tile on an image.
 
         :param dst_image: the image to draw the tile on
@@ -176,7 +176,7 @@ class TSX:
 
 class TMX:
     def __init__(self, filename: str):
-        """"
+        """
         :param filename: the filename of the *.tmx file to parse
         """
 
@@ -198,7 +198,7 @@ class TMX:
             self._tilesets.append((first_id, last_id, tsx))
 
     def _object_position(self, object_node: ET.Element) -> tuple[int,int]:
-        """"
+        """
         Return the center position of an object.
 
         :param object_node: the node of the object
@@ -213,7 +213,7 @@ class TMX:
         return x, y
 
     def _objects_layer_path_to_xpath(self, layer_path: str) -> str:
-        """"
+        """
         Return the XPath to the node of the given an objects layer path from the JSON descriptor.
 
         :param layer_path: the path to the objects layer
@@ -229,7 +229,7 @@ class TMX:
         return xpath
 
     def _tiles_layer_path_to_xpath(self, layer_path: str) -> str:
-        """"
+        """
         Return the XPath to the node of the given an tiles layer path from the JSON descriptor.
 
         :param layer_path: the path to the tiles layer
@@ -245,7 +245,7 @@ class TMX:
         return xpath
 
     def dependencies(self) -> list[str]:
-        """"
+        """
         Return the list of filenames the map depends on.
 
         :returns: the list of filenames the map depends on
@@ -258,7 +258,7 @@ class TMX:
         return deps
 
     def dimensions_in_pixels(self) -> tuple[int,int]:
-        """"
+        """
         Return the width and height of the map in pixels.
 
         :returns: the width and height of the map in pixels
@@ -267,7 +267,7 @@ class TMX:
         return (self._columns * self._tile_width, self._lines * self._tile_height)
 
     def dimensions_in_tiles(self) -> tuple[int,int]:
-        """"
+        """
         Return the width and height of the map in tiles.
 
         :returns: the width and height of the map in tiles
@@ -276,7 +276,7 @@ class TMX:
         return (self._columns, self._lines)
 
     def tile_dimensions(self) -> tuple[int,int]:
-        """"
+        """
         Return the width and height of the tiles in pixel.
 
         :returns: the width and height of the tiles in pixel
@@ -285,7 +285,7 @@ class TMX:
         return (self._tile_width, self._tile_height)
 
     def background_color(self) -> str:
-        """"
+        """
         Return the background color hex code of the map, with the # prefix.
 
         :returns: the background color hex code
@@ -294,7 +294,7 @@ class TMX:
         return self._root.find(".").get("backgroundcolor")
 
     def tilesets(self) -> list[tuple[int,int,TSX]]:
-        """"
+        """
         Return the list of tilesets consisting of their first ID in the map,
         their last ID in the map, and their TSX object.
 
@@ -304,7 +304,7 @@ class TMX:
         return self._tilesets
 
     def objects(self, layer_paths: list[str]|str) -> MapObjects:
-        """"
+        """
         Return the objects of layers. The objects are sorted by class in a dict.
 
         :param layer_paths: the paths (or single path) to the tiles layers
@@ -326,7 +326,7 @@ class TMX:
         return objects
 
     def compose(self, dst_image: PIL.Image.Image, layer_paths: list[str]|str, x: int, y: int):
-        """"
+        """
         Compose layers on an image. Each layer in composed over the previous ones.
 
         :param dst_image: the image to draw the layers on
@@ -369,7 +369,7 @@ class TMX:
                 y2 = y2 + 1
 
     def tiles(self, layer_path: str) -> str:
-        """"
+        """
         Return the tiles of a layer.
 
         :param layer_path: the path to the tiles layer
