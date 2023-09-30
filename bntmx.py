@@ -307,7 +307,7 @@ class TMX:
         """
         Return the objects of layers. The objects are sorted by class in a dict.
 
-        :param layer_paths: the paths (or single path) to the tiles layers
+        :param layer_paths: the paths (or single path) to the objects layers
         :returns: the objects
         """
 
@@ -330,7 +330,7 @@ class TMX:
         Compose layers on an image. Each layer in composed over the previous ones.
 
         :param dst_image: the image to draw the layers on
-        :param layer_paths: the paths (or single path) to the tiles layers
+        :param layer_paths: the paths (or single path) to the graphics layers
         :param x: the abscissa of the top-left corner from which to draw
         :param y: the ordinate of the top-left corner from which to draw
         """
@@ -368,7 +368,7 @@ class TMX:
                     x2 = x2 + 1
                 y2 = y2 + 1
 
-    def tiles(self, layer_path: str) -> str:
+    def tiles(self, layer_path: str) -> list[str]:
         """
         Return the tiles of a layer.
 
