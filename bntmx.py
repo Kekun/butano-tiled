@@ -4,7 +4,7 @@ zlib License, see LICENSE file.
 """
 
 from PIL import Image
-from tmx import MapObject, TMX
+from tmx import TMX
 import argparse
 import json
 import os
@@ -55,6 +55,26 @@ class TMXConverter:
 
         # The list of MapObjects for the list of object layers
         self._objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"]))
+        self._assign_id_and_layer_to_objects()
+
+    def _assign_id_and_layer_to_objects(self):
+        object_classes = self._object_classes()
+        id = 0
+
+        # Layers are already sorted, let's first sort by layers
+        for layer_index, layer_map_objects in enumerate(self._objects):
+            objects = layer_map_objects.objects()
+
+            # Then sort by classes
+            for object_class in object_classes:
+                if object_class not in objects:
+                    continue
+
+                # Then sort in whatever order the objects come in
+                for object in objects[object_class]:
+                    object.map_layer = layer_index
+                    object.map_id = id
+                    id += 1
 
     def _object_classes(self):
         # Return the sorted set of map object class names in the whole map, including the "" class
@@ -69,12 +89,12 @@ class TMXConverter:
     def _all_objects(self):
         # Return the list of map objects in the whole map
 
-        return [map_object for layer_map_objects in self._objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects]
+        return sorted([map_object for layer_map_objects in self._objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
 
     def _object_ids_enum(self):
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
 
-        return [str(map_object.id) + "=" + str(map_object.id_value) for map_object in self._all_objects() if map_object.id is not None]
+        return [str(map_object.id) + "=" + str(map_object.map_id) for map_object in self._all_objects() if map_object.id is not None]
 
     def _object_spans(self):
         # Return a list for each layer of lists of (index,length) pairs for each
@@ -273,14 +293,16 @@ namespace bntmx::maps
 
         n_objects_classes = len(self._object_classes())
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), "    ", 2), self._object_spans()), "    ", 1)
-        flattened_objects = self._all_objects()
-        n_objects = len(flattened_objects)
-        # We can't have empty constexpr arrays, so let's have a dummy element
-        # instead. It doesn't take much space and keeps the code more readable
-        # than by dropping them.
-        cpp_objects = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
-        if len(flattened_objects) > 0:
-            cpp_objects = multiline_c_array(list(map(lambda i: i.cpp_object(self._name), flattened_objects)), "    ", 1)
+        objects = self._all_objects()
+        n_objects = len(objects)
+        if n_objects > 0:
+            object_to_cpp_literal = lambda o: 'bntmx::map_object(bn::fixed_point({x}, {y}), {id})'.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
+            cpp_objects = multiline_c_array(list(map(object_to_cpp_literal, objects)), "    ", 1)
+        else:
+            # We can't have empty constexpr arrays, so let's have a dummy
+            # element instead. It doesn't take much space and keeps the code
+            # more readable than by dropping them.
+            cpp_objects = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
 
         # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
         tiles_to_array_literal = lambda tiles: multiline_c_array([",".join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], "    ", 2)
@@ -354,8 +376,6 @@ def process(maps_dirs, build_dir):
                     os.makedirs(build_include_dir)
                 if not os.path.exists(build_src_dir):
                     os.makedirs(build_src_dir)
-
-                MapObject._next_id_value = 0
 
                 tmx_filename = os.path.join(maps_dir, map_file)
                 converter = TMXConverter(tmx_filename)

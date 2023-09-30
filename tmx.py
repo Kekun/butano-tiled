@@ -68,8 +68,6 @@ def _tiles_layer_path_to_xpath(layer_path: str) -> str:
     return xpath
 
 class MapObject:
-    _next_id_value = 0
-
     def __init__(self, x: int, y: int, id: int, object_class: str):
         """
         :param x: the abscissa of the center of the object
@@ -82,21 +80,6 @@ class MapObject:
         self.y = y
         self.id = id
         self.object_class = object_class
-        self.id_value = MapObject._next_id_value
-        MapObject._next_id_value += 1
-
-    def cpp_object(self, namespace: str) -> str:
-        """
-        Return the C++ literal of the object.
-
-        :param namespace: the namespace for the object IDs
-        :returns: the C++ literal of the object
-        """
-
-        if self.id is None:
-            return 'bntmx::map_object(bn::fixed_point({x}, {y}), {id_value})'.format(x=self.x, y=self.y, id_value=self.id_value)
-        else:
-            return 'bntmx::map_object(bn::fixed_point({x}, {y}), {namespace}::{id})'.format(x=self.x, y=self.y, namespace=namespace, id=self.id)
 
 class MapObjects:
     def __init__(self):
