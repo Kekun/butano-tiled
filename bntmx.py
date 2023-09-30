@@ -34,13 +34,6 @@ def multiline_c_array(l: list, indentation: str, depth: int) -> str:
     :returns: the multiline array literal
     """
 
-    def tiles(self, layer_path: str, indentation: str, depth: int) -> str:
-        """"
-        Return the C or C++ array literal for tiles of a layer.
-
-        :param layer_path: the path to the tiles layer
-        """
-
     outer_indentation = indentation * depth
     inner_indentation = indentation * (depth + 1)
     splitter = ",\n" + inner_indentation
