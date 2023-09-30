@@ -368,14 +368,12 @@ class TMX:
                     x2 = x2 + 1
                 y2 = y2 + 1
 
-    def tiles(self, layer_path: str, indentation: str, depth: int) -> str:
+    def tiles(self, layer_path: str) -> str:
         """"
-        Return the C or C++ array literal for tiles of a layer.
+        Return the tiles of a layer.
 
         :param layer_path: the path to the tiles layer
-        :param indentation: the characters to use for an indentation level
-        :param depth: the depth of the indentation
-        :returns: the array literal
+        :returns: the tiles
         """
 
         # Parse the CSV tiles data to turn in into a Python list of tile IDs.
@@ -390,8 +388,7 @@ class TMX:
         if n_tiles != expected_n_tiles:
             logging.critical(self._filename + ": " + layer_path + ": Invalid number of tiles, expected " + str(expected_n_tiles) + ", got " + str(n_tiles))
 
-        # Convert the Python list into a C or C++ array literal, matching lines and columns to the map for readability.
-        return multiline_c_array([",".join(tiles[i:i + self._columns]) for i in range(0, len(tiles), self._columns)], indentation, depth)
+        return tiles
 
 class TMXConverter:
     def __init__(self, tmx_filename):
@@ -629,7 +626,12 @@ namespace bntmx::maps
         if len(flattened_objects) > 0:
             cpp_objects = multiline_c_array(list(map(lambda i: i.cpp_object(self._name), flattened_objects)), "    ", 1)
 
-        tiles = multiline_c_array(list(map(lambda layer_path: self._tmx.tiles(layer_path, "    ", 2), self._descriptor["tiles"])), "    ", 1)
+        # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
+        tiles_to_array_literal = lambda tiles: multiline_c_array([",".join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], "    ", 2)
+        # Get the C or C++ array literal of tiles for the given tiles layer path.
+        tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
+        # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
+        tiles = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"])), "    ", 1)
 
         source = '''\
 #include "{header_filename}"
