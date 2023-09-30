@@ -72,7 +72,7 @@ freedom in your file:
 - objects layers from an array will have all their objects exported into a
   single layer
 - tiles layers from an array will be merged one onto the other to form a
-  single layer (((FIXME not implemented yet)))
+  single layer
 
 Here is an example of what a *.json decriptor could look like:
 ```json
@@ -149,8 +149,6 @@ the ID of its last tile is `MYTILESET_LAST`, the tileset contains
 You can access the tiles via `bntmx::map::tiles()`.
 
 ## To Do
-
-Merge tiles layers too, for consistency with graphics and objects layers
 
 Split the objects in 256x256 chunks to allow saving some collision detections.
 

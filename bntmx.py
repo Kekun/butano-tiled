@@ -368,7 +368,7 @@ class TMX:
                     x2 = x2 + 1
                 y2 = y2 + 1
 
-    def tiles(self, layer_path: str) -> list[str]:
+    def _tiles(self, layer_path: str) -> list[str]:
         """
         Return the tiles of a layer.
 
@@ -387,6 +387,33 @@ class TMX:
         expected_n_tiles = self._columns * self._lines
         if n_tiles != expected_n_tiles:
             logging.critical(self._filename + ": " + layer_path + ": Invalid number of tiles, expected " + str(expected_n_tiles) + ", got " + str(n_tiles))
+
+        return tiles
+
+    def tiles(self, layer_paths: list[str]|str) -> list[str]:
+        """
+        Return the tiles of layers. The latest non-empty tile is used for each layer.
+
+        :param layer_paths: the paths (or single path) to the tiles layers
+        :returns: the tiles
+        """
+
+        if isinstance(layer_paths, str):
+            return self._tiles(layer_paths)
+
+        n_tiles = self._columns * self._lines
+        n_layers = len(layer_paths)
+        # Reversed so we can look for non-empty tiles starting from the topmost layer
+        tiles_layers = reversed(list(map(self._tiles, layer_paths)))
+        tiles = []
+        for i in range(0, n_tiles):
+            tile = '0'
+            for tiles_layer in tiles_layers:
+                if tiles_layer[i] != '0':
+                    tile = tiles_layer[i]
+                    # We can stop here because we look from the topmost layer
+                    break
+            tiles.append(tile)
 
         return tiles
 
