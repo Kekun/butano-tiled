@@ -9,8 +9,9 @@ import argparse
 import json
 import os
 import bntemplate
+import ctemplate
 
-_targets = ['butano']
+_targets = ['butano', 'c']
 
 def inline_c_array(l: list) -> str:
     """
@@ -160,6 +161,8 @@ class TMXConverter:
         indentation = "    "
         if self._target == "butano":
             indentation_depth = 1
+        elif self._target == "c":
+            indentation_depth = 0
 
         guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
         width_in_pixels, height_in_pixels = self._tmx.dimensions_in_pixels()
@@ -180,6 +183,8 @@ class TMXConverter:
 
         if self._target == "butano":
             header_template = bntemplate.header
+        elif self._target == "c":
+            header_template = ctemplate.header
 
         return header_template.format(
             guard=guard,
@@ -204,6 +209,8 @@ class TMXConverter:
         indentation = "    "
         if self._target == "butano":
             indentation_depth = 1
+        elif self._target == "c":
+            indentation_depth = 0
 
         header_filename = "bntmx_maps_" + self._name + ".h"
 
@@ -220,6 +227,8 @@ class TMXConverter:
         if n_objects > 0:
             if self._target == "butano":
                 map_object_template = bntemplate.map_object
+            elif self._target == "c":
+                map_object_template = ctemplate.map_object
             object_to_cpp_literal = lambda o: map_object_template.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
             objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), indentation, indentation_depth)
         else:
@@ -237,6 +246,8 @@ class TMXConverter:
 
         if self._target == "butano":
             source_template = bntemplate.source
+        elif self._target == "c":
+            source_template = ctemplate.source
 
         return source_template.format(
             header_filename=os.path.basename(header_filename),
@@ -270,6 +281,8 @@ def process(target, maps_dirs, build_dir):
     include_filename = os.path.join(build_dir, "include", "bntmx.h")
     if target == "butano":
         include = bntemplate.include
+    elif target == "c":
+        include = ctemplate.include
     output_file = open(include_filename, "w")
     output_file.write(include)
     output_file.close()
