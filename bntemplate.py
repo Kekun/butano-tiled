@@ -118,8 +118,6 @@ map_object = 'bntmx::map_object(bn::fixed_point({x}, {y}), {id})'
 source = '''\
 #include "{header_filename}"
 
-#include <bn_vector.h>
-
 namespace bntmx::maps
 {{
     // Objects are sorted by layers, then within layers they are sorted by
