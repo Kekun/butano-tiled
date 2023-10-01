@@ -8,6 +8,7 @@ from tmx import TMX
 import argparse
 import json
 import os
+import re
 import bntemplate
 
 def inline_c_array(l: list) -> str:
@@ -164,7 +165,9 @@ class TMXConverter:
         object_ids = multiline_c_array(self._object_ids_enum(), "    ", 3)
         tileset_bounds = []
         for first, last, tsx in self._tmx.tilesets():
-            enum_base = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
+            basename = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
+            # Remove non-alphanumeric characters (e.g. spaces) to prevent compilation errors.
+            enum_base = re.sub(r'[\W_]', '', basename)
             tileset_bounds.append(enum_base + "=" + str(first))
             tileset_bounds.append(enum_base + "_LAST=" + str(last))
         tile_ids = multiline_c_array(tileset_bounds, "    ", 3)
