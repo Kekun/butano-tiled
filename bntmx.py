@@ -51,6 +51,10 @@ class TMXConverter:
     def __init__(self, tmx_filename):
         self._tmx = TMX(tmx_filename)
         self._name = os.path.splitext(os.path.basename(tmx_filename))[0]
+        if self._name == "map":
+            raise ValueError("Maps cannot be called 'map' because that's the name of the parent class. "
+                             "Please pick a different filename than map.tmx.")
+        
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
         self._descriptor = json.load(descriptor)
 
