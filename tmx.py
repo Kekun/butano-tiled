@@ -170,7 +170,7 @@ class TSX:
         """
 
         src_x = (tile_id % self._columns) * self._tile_width
-        src_y = (tile_id // self._lines) * self._tile_height
+        src_y = (tile_id // self._columns) * self._tile_height
         dst_image.alpha_composite(self._image, (x, y), (src_x, src_y, src_x + self._tile_width, src_y + self._tile_height))
 
 class TMX:
