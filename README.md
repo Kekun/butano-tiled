@@ -21,7 +21,8 @@ In your makefile add:
 - the `$(BUILD)/graphics` directory to `GRAPHICS`
 
 Then, if you don't have an external tool defined in `EXTTOOL` in your makefile,
-add `@$(PYTHON) -B bntmx.py --build=$(BUILD) $(MAPS)` to `EXTTOOL`.
+add `@$(PYTHON) -B bntmx.py --target=butano --build=$(BUILD) $(MAPS)` to
+`EXTTOOL`.
 If you already have a Python external tool, add this to it:
 ```python
 import bntmx

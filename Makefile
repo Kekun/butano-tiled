@@ -47,7 +47,7 @@ USERLIBS    :=
 DEFAULTLIBS :=  
 USERBUILD   :=  
 MAPS        :=  maps
-EXTTOOL     :=  @$(PYTHON) -B bntmx.py --build=$(BUILD) $(MAPS)
+EXTTOOL     :=  @$(PYTHON) -B bntmx.py --target=butano --build=$(BUILD) $(MAPS)
 
 #---------------------------------------------------------------------------------------------------------------------
 # Export absolute butano path:

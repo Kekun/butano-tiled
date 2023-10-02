@@ -293,6 +293,7 @@ def process(maps_dirs, build_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compile Tiled maps into code and data usable by the game engine.')
+    parser.add_argument('--target', choices=['butano'], required=True, help='build target')
     parser.add_argument('--build', required=True, help='build directory path')
     parser.add_argument('mapsdirs', metavar='mapsdir', nargs='+',
                         help='maps directories paths')
