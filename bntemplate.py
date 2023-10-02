@@ -21,7 +21,7 @@ header = '''\
 
 namespace bntmx::maps
 {{
-    class {map_name} : public map
+    class {map_name} : public bntmx::map
     {{
         public:
             enum object_class {object_classes};
