@@ -160,14 +160,14 @@ class TMXConverter:
         n_objects_layers = len(self._descriptor["objects"])
         n_tiles_layers = len(self._descriptor["tiles"])
         objects = self._objects
-        object_classes = multiline_c_array(self._object_classes_enum(), "    ", 3)
-        object_ids = multiline_c_array(self._object_ids_enum(), "    ", 3)
+        object_classes = multiline_c_array(self._object_classes_enum(), "    ", 1)
+        object_ids = multiline_c_array(self._object_ids_enum(), "    ", 1)
         tileset_bounds = []
         for first, last, tsx in self._tmx.tilesets():
             enum_base = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
             tileset_bounds.append(enum_base + "=" + str(first))
             tileset_bounds.append(enum_base + "_LAST=" + str(last))
-        tile_ids = multiline_c_array(tileset_bounds, "    ", 3)
+        tile_ids = multiline_c_array(tileset_bounds, "    ", 1)
 
         return bntemplate.header.format(
             guard=guard,
@@ -230,22 +230,29 @@ class TMXConverter:
             tiles=tiles_literal)
 
 def process(maps_dirs, build_dir):
+    build_graphics_dir = os.path.join(build_dir, "graphics")
+    build_include_dir = os.path.join(build_dir, "include")
+    build_src_dir = os.path.join(build_dir, "src")
+
+    if not os.path.exists(build_dir):
+        os.makedirs(build_dir)
+    if not os.path.exists(build_graphics_dir):
+        os.makedirs(build_graphics_dir)
+    if not os.path.exists(build_include_dir):
+        os.makedirs(build_include_dir)
+    if not os.path.exists(build_src_dir):
+        os.makedirs(build_src_dir)
+
+    # Export the global header
+    header_filename = os.path.join(build_dir, "include", "bntmx.h")
+    header = bntemplate.include
+    output_file = open(header_filename, "w")
+    output_file.write(header)
+    output_file.close()
+
     for maps_dir in maps_dirs:
         for map_file in os.listdir(maps_dir):
             if map_file.endswith('.tmx') and os.path.isfile(os.path.join(maps_dir, map_file)):
-                build_graphics_dir = os.path.join(build_dir, "graphics")
-                build_include_dir = os.path.join(build_dir, "include")
-                build_src_dir = os.path.join(build_dir, "src")
-
-                if not os.path.exists(build_dir):
-                    os.makedirs(build_dir)
-                if not os.path.exists(build_graphics_dir):
-                    os.makedirs(build_graphics_dir)
-                if not os.path.exists(build_include_dir):
-                    os.makedirs(build_include_dir)
-                if not os.path.exists(build_src_dir):
-                    os.makedirs(build_src_dir)
-
                 tmx_filename = os.path.join(maps_dir, map_file)
                 converter = TMXConverter(tmx_filename)
                 map_name = converter.name()

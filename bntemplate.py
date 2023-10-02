@@ -3,6 +3,133 @@ Copyright (c) 2023 Adrien Plazas <kekun.plazas@laposte.net>
 zlib License, see LICENSE file.
 """
 
+include = '''
+/*
+ * Copyright (c) 2023 Adrien Plazas <kekun.plazas@laposte.net>
+ * zlib License, see LICENSE file.
+ */
+
+#ifndef BNTMX_MAP_H
+#define BNTMX_MAP_H
+
+#include <bn_fixed_point.h>
+#include <bn_size.h>
+#include <bn_span.h>
+#include <bn_regular_bg_item.h>
+
+namespace bntmx
+{
+
+struct map_object
+{
+    bn::fixed_point position;
+    uint16_t id;
+};
+
+typedef uint16_t map_tile;
+
+class map
+{
+
+public:
+    virtual constexpr ~map() {}
+
+    /**
+     * @brief Returns the dimensions of the map in pixels.
+     */
+    virtual constexpr bn::size dimensions_in_pixels() const = 0;
+
+    /**
+     * @brief Returns the dimensions of the map in tiles.
+     */
+    virtual constexpr bn::size dimensions_in_tiles() const = 0;
+
+    /**
+     * @brief Returns the dimensions of each tile of the map.
+     */
+    virtual constexpr bn::size tile_dimensions() const = 0;
+
+    /**
+     * @brief Returns the width of the map in pixels.
+     */
+    virtual constexpr int width_in_pixels() const = 0;
+
+    /**
+     * @brief Returns the height of the map in pixels.
+     */
+    virtual constexpr int height_in_pixels() const = 0;
+
+    /**
+     * @brief Returns the width of the map in tiles.
+     */
+    virtual constexpr int width_in_tiles() const = 0;
+
+    /**
+     * @brief Returns the height of the map in tiles.
+     */
+    virtual constexpr int height_in_tiles() const = 0;
+
+    /**
+     * @brief Returns the width of each tile of the map.
+     */
+    virtual constexpr int tile_width() const = 0;
+
+    /**
+     * @brief Returns the height of each tile of the map.
+     */
+    virtual constexpr int tile_height() const = 0;
+
+    /**
+     * @brief Returns the number of graphics layers of the map.
+     */
+    virtual constexpr int n_graphics_layers() const = 0;
+
+    /**
+     * @brief Returns the number of objects layers of the map.
+     */
+    virtual constexpr int n_objects_layers() const = 0;
+
+    /**
+     * @brief Returns the number of tiles layers of the map.
+     */
+    virtual constexpr int n_tiles_layers() const = 0;
+
+    /**
+     * @brief Returns the bn::regular_bg_item containing the graphics layers of the map.
+     */
+    virtual constexpr bn::regular_bg_item regular_bg_item() const = 0;
+
+    /**
+     * @brief Returns the object with the given ID.
+     * @param object_id ID of the objects.
+     */
+    virtual const bntmx::map_object object(int object_id) const = 0;
+
+    /**
+     * @brief Returns the classless objects of the given layer of the map.
+     * @param objects_layer_index Index of the objects layer.
+     */
+    virtual const bn::span<const bntmx::map_object> objects(int objects_layer_index) const = 0;
+
+    /**
+     * @brief Returns the objects of the given class and layer of the map.
+     * @param objects_layer_index Index of the objects layer.
+     * @param objects_class Class of the objects.
+     */
+    virtual const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const = 0;
+
+    /**
+     * @brief Returns the tiles of the given layer of the map.
+     * @param tiles_layer_index Index of the tiles layer.
+     */
+    virtual const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const = 0;
+};
+
+}
+
+#endif
+'''
+
 graphics = '''\
 {{
     "type": "regular_bg",
@@ -15,99 +142,103 @@ header = '''\
 #ifndef {guard}
 #define {guard}
 
-#include "bntmx_map.h"
+#include "bntmx.h"
 
 #include <bn_regular_bg_items_{map_name}.h>
 
 namespace bntmx::maps
 {{
-    class {map_name} : public bntmx::map
+
+class {map_name} : public bntmx::map
+{{
+
+public:
+    enum object_class {object_classes};
+
+    enum object_id {object_ids};
+
+    enum tile_id {tile_ids};
+
+    constexpr {map_name}()
     {{
-        public:
-            enum object_class {object_classes};
+    }}
 
-            enum object_id {object_ids};
+    constexpr ~{map_name}()
+    {{
+    }}
 
-            enum tile_id {tile_ids};
+    constexpr bn::size dimensions_in_pixels() const
+    {{
+        return bn::size({width_in_pixels}, {height_in_pixels});
+    }}
 
-            constexpr {map_name}()
-            {{
-            }}
+    constexpr bn::size dimensions_in_tiles() const
+    {{
+        return bn::size({width_in_tiles}, {height_in_tiles});
+    }}
 
-            constexpr ~{map_name}()
-            {{
-            }}
+    constexpr bn::size tile_dimensions() const
+    {{
+        return bn::size({tile_width}, {tile_height});
+    }}
 
-            constexpr bn::size dimensions_in_pixels() const
-            {{
-                return bn::size({width_in_pixels}, {height_in_pixels});
-            }}
+    constexpr int width_in_pixels() const
+    {{
+        return {width_in_pixels};
+    }}
 
-            constexpr bn::size dimensions_in_tiles() const
-            {{
-                return bn::size({width_in_tiles}, {height_in_tiles});
-            }}
+    constexpr int height_in_pixels() const
+    {{
+        return {height_in_pixels};
+    }}
 
-            constexpr bn::size tile_dimensions() const
-            {{
-                return bn::size({tile_width}, {tile_height});
-            }}
+    constexpr int width_in_tiles() const
+    {{
+        return {width_in_tiles};
+    }}
 
-            constexpr int width_in_pixels() const
-            {{
-                return {width_in_pixels};
-            }}
+    constexpr int height_in_tiles() const
+    {{
+        return {height_in_tiles};
+    }}
 
-            constexpr int height_in_pixels() const
-            {{
-                return {height_in_pixels};
-            }}
+    constexpr int tile_width() const
+    {{
+        return {tile_width};
+    }}
 
-            constexpr int width_in_tiles() const
-            {{
-                return {width_in_tiles};
-            }}
+    constexpr int tile_height() const
+    {{
+        return {tile_height};
+    }}
 
-            constexpr int height_in_tiles() const
-            {{
-                return {height_in_tiles};
-            }}
+    constexpr int n_graphics_layers() const
+    {{
+        return {n_graphics_layers};
+    }}
 
-            constexpr int tile_width() const
-            {{
-                return {tile_width};
-            }}
+    constexpr int n_objects_layers() const
+    {{
+        return {n_objects_layers};
+    }}
 
-            constexpr int tile_height() const
-            {{
-                return {tile_height};
-            }}
+    constexpr int n_tiles_layers() const
+    {{
+        return {n_tiles_layers};
+    }}
 
-            constexpr int n_graphics_layers() const
-            {{
-                return {n_graphics_layers};
-            }}
+    constexpr bn::regular_bg_item regular_bg_item() const
+    {{
+        return bn::regular_bg_items::{map_name};
+    }}
 
-            constexpr int n_objects_layers() const
-            {{
-                return {n_objects_layers};
-            }}
+    const bntmx::map_object object(int id) const;
+    const bn::span<const bntmx::map_object> objects(int objects_layer_index) const;
+    const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const;
+    const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const;
 
-            constexpr int n_tiles_layers() const
-            {{
-                return {n_tiles_layers};
-            }}
+}};
 
-            constexpr bn::regular_bg_item regular_bg_item() const
-            {{
-                return bn::regular_bg_items::{map_name};
-            }}
-
-            const bntmx::map_object object(int id) const;
-            const bn::span<const bntmx::map_object> objects(int objects_layer_index) const;
-            const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const;
-            const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const;
-    }};
 }}
 
 #endif

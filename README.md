@@ -17,7 +17,7 @@ In your makefile create:
 
 In your makefile add:
 - the `$(BUILD)/src` directory to `SOURCES`
-- the `$(BUILD)/include` and `bntmx/include` directories to `INCLUDES`
+- the `$(BUILD)/include` directory to `INCLUDES`
 - the `$(BUILD)/graphics` directory to `GRAPHICS`
 
 Then, if you don't have an external tool defined in `EXTTOOL` in your makefile,
