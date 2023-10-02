@@ -26,7 +26,7 @@ add `@$(PYTHON) -B bntmx.py --target=butano --build=$(BUILD) $(MAPS)` to
 If you already have a Python external tool, add this to it:
 ```python
 import bntmx
-bntmx.process(["maps"], "build")
+bntmx.process("butano", ["maps"], "build")
 ```
 
 ## Usage

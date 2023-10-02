@@ -10,6 +10,8 @@ import json
 import os
 import bntemplate
 
+_targets = ['butano']
+
 def inline_c_array(l: list) -> str:
     """
     Return the inline C or C++ literal array or struct for the elements in the list.
@@ -48,7 +50,10 @@ def bg_size(size: int):
     return size if size % 256 == 0 else (size // 256 + 1) * 256
 
 class TMXConverter:
-    def __init__(self, tmx_filename):
+    def __init__(self, target, tmx_filename):
+        assert target in _targets
+
+        self._target = target
         self._tmx = TMX(tmx_filename)
         self._name = os.path.splitext(os.path.basename(tmx_filename))[0]
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
@@ -229,7 +234,9 @@ class TMXConverter:
             size=str(size),
             tiles=tiles_literal)
 
-def process(maps_dirs, build_dir):
+def process(target, maps_dirs, build_dir):
+    assert target in _targets
+
     build_graphics_dir = os.path.join(build_dir, "graphics")
     build_include_dir = os.path.join(build_dir, "include")
     build_src_dir = os.path.join(build_dir, "src")
@@ -254,7 +261,7 @@ def process(maps_dirs, build_dir):
         for map_file in os.listdir(maps_dir):
             if map_file.endswith('.tmx') and os.path.isfile(os.path.join(maps_dir, map_file)):
                 tmx_filename = os.path.join(maps_dir, map_file)
-                converter = TMXConverter(tmx_filename)
+                converter = TMXConverter(target, tmx_filename)
                 map_name = converter.name()
 
                 tmx_json_filename = os.path.join(maps_dir, map_name + ".json")
@@ -293,9 +300,9 @@ def process(maps_dirs, build_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compile Tiled maps into code and data usable by the game engine.')
-    parser.add_argument('--target', choices=['butano'], required=True, help='build target')
+    parser.add_argument('--target', choices=_targets, required=True, help='build target')
     parser.add_argument('--build', required=True, help='build directory path')
     parser.add_argument('mapsdirs', metavar='mapsdir', nargs='+',
                         help='maps directories paths')
     args = parser.parse_args()
-    process(args.mapsdirs, args.build)
+    process(args.target, args.mapsdirs, args.build)
