@@ -88,20 +88,20 @@ class TMXConverter:
 
         return sorted(set([map_object_class for layer_map_objects in self._objects for map_object_class in layer_map_objects.objects().keys()]))
 
-    def _object_classes_enum(self):
+    def _object_classes_enum(self, namespace):
         # Return the list of enumeration definitions for the map object class names in the whole map, excluding the "" class
 
-        return list(map(lambda i_and_object_class: i_and_object_class[1] + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
+        return list(map(lambda i_and_object_class: namespace + i_and_object_class[1] + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
 
     def _all_objects(self):
         # Return the list of map objects in the whole map
 
         return sorted([map_object for layer_map_objects in self._objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
 
-    def _object_ids_enum(self):
+    def _object_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
 
-        return [str(map_object.id) + "=" + str(map_object.map_id) for map_object in self._all_objects() if map_object.id is not None]
+        return [namespace + str(map_object.id) + "=" + str(map_object.map_id) for map_object in self._all_objects() if map_object.id is not None]
 
     def _object_spans(self):
         # Return a list for each layer of lists of (index,length) pairs for each
@@ -160,9 +160,13 @@ class TMXConverter:
 
         indentation = "    "
         if self._target == "butano":
+            header_template = bntemplate.header
             indentation_depth = 1
+            namespace = ""
         elif self._target == "c":
+            header_template = ctemplate.header
             indentation_depth = 0
+            namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
 
         guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
         width_in_pixels, height_in_pixels = self._tmx.dimensions_in_pixels()
@@ -172,19 +176,14 @@ class TMXConverter:
         n_objects_layers = len(self._descriptor["objects"])
         n_tiles_layers = len(self._descriptor["tiles"])
         objects = self._objects
-        object_classes = multiline_c_array(self._object_classes_enum(), indentation, indentation_depth)
-        object_ids = multiline_c_array(self._object_ids_enum(), indentation, indentation_depth)
+        object_classes = multiline_c_array(self._object_classes_enum(namespace), indentation, indentation_depth)
+        object_ids = multiline_c_array(self._object_ids_enum(namespace), indentation, indentation_depth)
         tileset_bounds = []
         for first, last, tsx in self._tmx.tilesets():
             enum_base = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
-            tileset_bounds.append(enum_base + "=" + str(first))
-            tileset_bounds.append(enum_base + "_LAST=" + str(last))
+            tileset_bounds.append(namespace + enum_base + "=" + str(first))
+            tileset_bounds.append(namespace + enum_base + "_LAST=" + str(last))
         tile_ids = multiline_c_array(tileset_bounds, indentation, indentation_depth)
-
-        if self._target == "butano":
-            header_template = bntemplate.header
-        elif self._target == "c":
-            header_template = ctemplate.header
 
         return header_template.format(
             guard=guard,
@@ -209,8 +208,14 @@ class TMXConverter:
         indentation = "    "
         if self._target == "butano":
             indentation_depth = 1
+            map_object_template = bntemplate.map_object
+            namespace = "bntmx::maps::" + self._name + "::"
+            source_template = bntemplate.source
         elif self._target == "c":
             indentation_depth = 0
+            map_object_template = ctemplate.map_object
+            namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+            source_template = ctemplate.source
 
         header_filename = "bntmx_maps_" + self._name + ".h"
 
@@ -225,17 +230,16 @@ class TMXConverter:
         objects = self._all_objects()
         n_objects = len(objects)
         if n_objects > 0:
-            if self._target == "butano":
-                map_object_template = bntemplate.map_object
-            elif self._target == "c":
-                map_object_template = ctemplate.map_object
-            object_to_cpp_literal = lambda o: map_object_template.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
+            object_to_cpp_literal = lambda o: map_object_template.format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
             objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), indentation, indentation_depth)
         else:
             # We can't have empty constexpr arrays, so let's have a dummy
             # element instead. It doesn't take much space and keeps the code
             # more readable than by dropping them.
-            objects_literal = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
+            if self._target == "butano":
+                objects_literal = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
+            elif self._target == "c":
+                objects_literal = "{(bntmx_map_object) {0, 0, 0}}"
 
         # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
         tiles_to_array_literal = lambda tiles: multiline_c_array([",".join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], indentation, indentation_depth + 1)
@@ -243,11 +247,6 @@ class TMXConverter:
         tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
         # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
         tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"])), indentation, indentation_depth)
-
-        if self._target == "butano":
-            source_template = bntemplate.source
-        elif self._target == "c":
-            source_template = ctemplate.source
 
         return source_template.format(
             header_filename=os.path.basename(header_filename),
@@ -298,7 +297,10 @@ def process(target, maps_dirs, build_dir):
                 bmp_filename = os.path.join(build_dir, "graphics", map_name + ".bmp")
                 bmp_json_filename = os.path.join(build_dir, "graphics", map_name + ".json")
                 header_filename = os.path.join(build_dir, "include", "bntmx_maps_" + map_name + ".h")
-                source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
+                if target == "butano":
+                    source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
+                elif target == "c":
+                    source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".c")
 
                 # Don't rebuild unchanged files
                 input_mtime = max(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [tmx_filename, tmx_json_filename] + converter.dependencies()))

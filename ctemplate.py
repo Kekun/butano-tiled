@@ -9,8 +9,11 @@ include = '''
  * zlib License, see LICENSE file.
  */
 
-#ifndef BNTMX_MAP_H
-#define BNTMX_MAP_H
+#ifndef BNTMX_H
+#define BNTMX_H
+
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct
 {
@@ -23,7 +26,7 @@ typedef uint16_t bntmx_map_tile;
 
 typedef struct
 {
-    void* data;
+    const void* data;
     size_t length;
 } bntmx_span;
 
@@ -64,6 +67,8 @@ map_object = '(bntmx_map_object) {{{x}, {y}, {id}}}'
 source = '''\
 #include "{header_filename}"
 
+#include <assert.h>
+
 /* Objects are sorted by layers, then within layers they are sorted by classes
  * (with classless objects first), then within classes they are sorted in the
  * order they are found.
@@ -79,22 +84,22 @@ static const struct {{uint16_t index; uint16_t length;}} _objects_spans[{n_objec
 
 static const bntmx_map_tile _tiles[{n_tiles_layers}][{size}] = {tiles};
 
-const bntmx_map_object bntmx_maps_{map_name}_object(int id) const
+const bntmx_map_object bntmx_maps_{map_name}_object(int id)
 {{
-    assert(id < {n_objects}, "Invalid object ID: ", id);
+    assert(id < {n_objects});
     return _objects[id];
 }}
 
-const bntmx_span bntmx_maps_{map_name}_objects(int objects_layer_index, int objects_class) const
+const bntmx_span bntmx_maps_{map_name}_objects(int objects_layer_index, int objects_class)
 {{
     assert(objects_layer_index < {n_objects_layers});
     assert(objects_class < {n_objects_classes});
-    return bntmx_span(&_objects[_objects_spans[objects_layer_index][objects_class].index], _objects_spans[objects_layer_index][objects_class].length);
+    return (bntmx_span) {{&_objects[_objects_spans[objects_layer_index][objects_class].index], _objects_spans[objects_layer_index][objects_class].length}};
 }}
 
-const bntmx_span bntmx_maps_{map_name}_tiles(int tiles_layer_index) const
+const bntmx_span bntmx_maps_{map_name}_tiles(int tiles_layer_index)
 {{
     assert(tiles_layer_index < {n_tiles_layers});
-    return bntmx_span(_tiles[tiles_layer_index], {size});
+    return (bntmx_span) {{_tiles[tiles_layer_index], {size}}};
 }}
 '''
