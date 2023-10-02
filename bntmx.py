@@ -157,6 +157,10 @@ class TMXConverter:
     def butano_header(self):
         # Convert the TMX into its C++ header.
 
+        indentation = "    "
+        if self._target == "butano":
+            indentation_depth = 1
+
         guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
         width_in_pixels, height_in_pixels = self._tmx.dimensions_in_pixels()
         width_in_tiles, height_in_tiles = self._tmx.dimensions_in_tiles()
@@ -165,16 +169,19 @@ class TMXConverter:
         n_objects_layers = len(self._descriptor["objects"])
         n_tiles_layers = len(self._descriptor["tiles"])
         objects = self._objects
-        object_classes = multiline_c_array(self._object_classes_enum(), "    ", 1)
-        object_ids = multiline_c_array(self._object_ids_enum(), "    ", 1)
+        object_classes = multiline_c_array(self._object_classes_enum(), indentation, indentation_depth)
+        object_ids = multiline_c_array(self._object_ids_enum(), indentation, indentation_depth)
         tileset_bounds = []
         for first, last, tsx in self._tmx.tilesets():
             enum_base = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
             tileset_bounds.append(enum_base + "=" + str(first))
             tileset_bounds.append(enum_base + "_LAST=" + str(last))
-        tile_ids = multiline_c_array(tileset_bounds, "    ", 1)
+        tile_ids = multiline_c_array(tileset_bounds, indentation, indentation_depth)
 
-        return bntemplate.header.format(
+        if self._target == "butano":
+            header_template = bntemplate.header
+
+        return header_template.format(
             guard=guard,
             height_in_pixels=height_in_pixels,
             height_in_tiles=height_in_tiles,
@@ -194,6 +201,10 @@ class TMXConverter:
     def butano_source(self):
         # Convert the TMX into its C++ source.
 
+        indentation = "    "
+        if self._target == "butano":
+            indentation_depth = 1
+
         header_filename = "bntmx_maps_" + self._name + ".h"
 
         width_in_tiles, height_in_tiles = self._tmx.dimensions_in_tiles()
@@ -203,12 +214,14 @@ class TMXConverter:
         size = width_in_tiles * height_in_tiles
 
         n_objects_classes = len(self._object_classes())
-        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), "    ", 2), self._object_spans()), "    ", 1)
+        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._object_spans()), indentation, indentation_depth)
         objects = self._all_objects()
         n_objects = len(objects)
         if n_objects > 0:
-            object_to_cpp_literal = lambda o: bntemplate.map_object.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
-            objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), "    ", 1)
+            if self._target == "butano":
+                map_object_template = bntemplate.map_object
+            object_to_cpp_literal = lambda o: map_object_template.format(x=o.x, y=o.y, id=o.map_id if o.id is None else self._name + "::" + str(o.id))
+            objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), indentation, indentation_depth)
         else:
             # We can't have empty constexpr arrays, so let's have a dummy
             # element instead. It doesn't take much space and keeps the code
@@ -216,13 +229,16 @@ class TMXConverter:
             objects_literal = "{bntmx::map_object(bn::fixed_point(0, 0), 0)}"
 
         # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
-        tiles_to_array_literal = lambda tiles: multiline_c_array([",".join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], "    ", 2)
+        tiles_to_array_literal = lambda tiles: multiline_c_array([",".join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], indentation, indentation_depth + 1)
         # Get the C or C++ array literal of tiles for the given tiles layer path.
         tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
         # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
-        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"])), "    ", 1)
+        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"])), indentation, indentation_depth)
 
-        return bntemplate.source.format(
+        if self._target == "butano":
+            source_template = bntemplate.source
+
+        return source_template.format(
             header_filename=os.path.basename(header_filename),
             map_name=self._name,
             n_objects_classes=n_objects_classes,
@@ -251,10 +267,11 @@ def process(target, maps_dirs, build_dir):
         os.makedirs(build_src_dir)
 
     # Export the global header
-    header_filename = os.path.join(build_dir, "include", "bntmx.h")
-    header = bntemplate.include
-    output_file = open(header_filename, "w")
-    output_file.write(header)
+    include_filename = os.path.join(build_dir, "include", "bntmx.h")
+    if target == "butano":
+        include = bntemplate.include
+    output_file = open(include_filename, "w")
+    output_file.write(include)
     output_file.close()
 
     for maps_dir in maps_dirs:
@@ -281,10 +298,11 @@ def process(target, maps_dirs, build_dir):
                 gfx_im.save(bmp_filename, "BMP")
 
                 # Export the graphics descriptor
-                bmp_json = converter.regular_bg_descriptor()
-                bmp_json_file = open(bmp_json_filename, "w")
-                bmp_json_file.write(bmp_json)
-                bmp_json_file.close()
+                if target == "butano":
+                    bmp_json = converter.regular_bg_descriptor()
+                    bmp_json_file = open(bmp_json_filename, "w")
+                    bmp_json_file.write(bmp_json)
+                    bmp_json_file.close()
 
                 # Export the C++ header
                 header = converter.butano_header()
