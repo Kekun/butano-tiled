@@ -13,6 +13,11 @@ import ctemplate
 
 _targets = ['butano', 'c']
 
+def write_to_file(filename: str, text: str):
+    f = open(filename, "w")
+    f.write(text)
+    f.close()
+
 def inline_c_array(l: list) -> str:
     """
     Return the inline C or C++ literal array or struct for the elements in the list.
@@ -282,9 +287,7 @@ def process(target, maps_dirs, build_dir):
         include = bntemplate.include
     elif target == "c":
         include = ctemplate.include
-    output_file = open(include_filename, "w")
-    output_file.write(include)
-    output_file.close()
+    write_to_file(include_filename, include)
 
     for maps_dir in maps_dirs:
         for map_file in os.listdir(maps_dir):
@@ -314,22 +317,13 @@ def process(target, maps_dirs, build_dir):
 
                 # Export the graphics descriptor
                 if target == "butano":
-                    bmp_json = converter.regular_bg_descriptor()
-                    bmp_json_file = open(bmp_json_filename, "w")
-                    bmp_json_file.write(bmp_json)
-                    bmp_json_file.close()
+                    write_to_file(bmp_json_filename, converter.regular_bg_descriptor())
 
                 # Export the C++ header
-                header = converter.butano_header()
-                output_file = open(header_filename, "w")
-                output_file.write(header)
-                output_file.close()
+                write_to_file(header_filename, converter.butano_header())
 
                 # Export the C++ source
-                source = converter.butano_source()
-                output_file = open(source_filename, "w")
-                output_file.write(source)
-                output_file.close()
+                write_to_file(source_filename, converter.butano_source())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compile Tiled maps into code and data usable by the game engine.')
