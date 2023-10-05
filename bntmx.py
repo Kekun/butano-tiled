@@ -153,6 +153,11 @@ class TMXConverter:
 
         return self._basename
 
+    def name(self):
+        # Return the basename of the map
+
+        return self._name
+
     def regular_bg_image(self):
         # Convert the TMX into its regular background image.
 
@@ -314,9 +319,10 @@ def process(target, maps_dirs, build_dir):
             if map_file.endswith('.tmx') and os.path.isfile(os.path.join(maps_dir, map_file)):
                 tmx_filename = os.path.join(maps_dir, map_file)
                 converter = TMXConverter(target, tmx_filename)
-                map_name = converter.basename()
+                map_basename = converter.basename()
+                map_name = converter.name()
 
-                tmx_json_filename = os.path.join(maps_dir, map_name + ".json")
+                tmx_json_filename = os.path.join(maps_dir, map_basename + ".json")
                 bmp_filename = os.path.join(build_dir, "graphics", map_name + ".bmp")
                 bmp_json_filename = os.path.join(build_dir, "graphics", map_name + ".json")
                 header_filename = os.path.join(build_dir, "include", "bntmx_maps_" + map_name + ".h")
