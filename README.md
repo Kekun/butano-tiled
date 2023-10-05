@@ -149,6 +149,21 @@ the ID of its last tile is `MYTILESET_LAST`, the tileset contains
 
 You can access the tiles via `bntmx::map::tiles()`.
 
+## Name Mangling
+
+To ensure compatibility with C and C++, map file names, tileset file names,
+object names and object class names are mangled.
+Name mangling can lead to collisions as two originaly different names can lead
+to the same mangled name, please be sure to use different-enough names to avoid
+that.
+
+Names are mangled in the following way:
+- leading characters that aren't ASCII letters are trimmed
+- trailing characters that aren't ASCII letters or digits are trimmed
+- sequences of characters that aren't ASCII letters or digits are replaced by a single underscore character
+- names are lowercase in namespace names, type names, and function names
+- names are uppercase in enumeration values, and inclusion guards
+
 ## To Do
 
 Split the objects in 256x256 chunks to allow saving some collision detections.

@@ -8,6 +8,7 @@ from tmx import TMX
 import argparse
 import json
 import os
+import re
 import bntemplate
 import ctemplate
 
@@ -55,13 +56,32 @@ def bg_size(size: int):
 
     return size if size % 256 == 0 else (size // 256 + 1) * 256
 
+def mangle(name: str) -> str:
+    """
+    Return the lowercase mangled C or C++ name for the given name.
+
+    Names are mangled in the following way:
+    - leading characters that aren't ASCII letters are trimmed
+    - trailing characters that aren't ASCII letters or digits are trimmed
+    - sequences of characters that aren't ASCII letters or digits are replaced
+      by a single underscore character
+    - letters are lowercased
+
+    :param name: the name to mangle
+    :returns: the lowercase mangled name
+    """
+
+    match = re.match('^[0-9_]*([a-z0-9_]+?)_*$', re.sub('[^a-z0-9]+', '_', name.lower()))
+    return "" if match is None else match.group(1)
+
 class TMXConverter:
     def __init__(self, target, tmx_filename):
         assert target in _targets
 
         self._target = target
         self._tmx = TMX(tmx_filename)
-        self._name = os.path.splitext(os.path.basename(tmx_filename))[0]
+        self._basename = os.path.splitext(os.path.basename(tmx_filename))[0]
+        self._name = mangle(self._basename)
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
         self._descriptor = json.load(descriptor)
 
@@ -96,7 +116,7 @@ class TMXConverter:
     def _object_classes_enum(self, namespace):
         # Return the list of enumeration definitions for the map object class names in the whole map, excluding the "" class
 
-        return list(map(lambda i_and_object_class: namespace + i_and_object_class[1] + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
+        return list(map(lambda i_and_object_class: namespace + mangle(i_and_object_class[1]).upper() + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
 
     def _all_objects(self):
         # Return the list of map objects in the whole map
@@ -106,7 +126,7 @@ class TMXConverter:
     def _object_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
 
-        return [namespace + str(map_object.id) + "=" + str(map_object.map_id) for map_object in self._all_objects() if map_object.id is not None]
+        return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._all_objects() if map_object.id is not None]
 
     def _object_spans(self):
         # Return a list for each layer of lists of (index,length) pairs for each
@@ -128,10 +148,10 @@ class TMXConverter:
     def dependencies(self):
         return self._tmx.dependencies()
 
-    def name(self):
-        # Return the name of the map
+    def basename(self):
+        # Return the basename of the map
 
-        return self._name
+        return self._basename
 
     def regular_bg_image(self):
         # Convert the TMX into its regular background image.
@@ -185,7 +205,7 @@ class TMXConverter:
         object_ids = multiline_c_array(self._object_ids_enum(namespace), indentation, indentation_depth)
         tileset_bounds = []
         for first, last, tsx in self._tmx.tilesets():
-            enum_base = os.path.splitext(os.path.basename(tsx.filename()))[0].upper()
+            enum_base = mangle(os.path.splitext(os.path.basename(tsx.filename()))[0]).upper()
             tileset_bounds.append(namespace + enum_base + "=" + str(first))
             tileset_bounds.append(namespace + enum_base + "_LAST=" + str(last))
         tile_ids = multiline_c_array(tileset_bounds, indentation, indentation_depth)
@@ -294,7 +314,7 @@ def process(target, maps_dirs, build_dir):
             if map_file.endswith('.tmx') and os.path.isfile(os.path.join(maps_dir, map_file)):
                 tmx_filename = os.path.join(maps_dir, map_file)
                 converter = TMXConverter(target, tmx_filename)
-                map_name = converter.name()
+                map_name = converter.basename()
 
                 tmx_json_filename = os.path.join(maps_dir, map_name + ".json")
                 bmp_filename = os.path.join(build_dir, "graphics", map_name + ".bmp")
