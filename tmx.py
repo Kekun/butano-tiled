@@ -268,7 +268,13 @@ class TMX:
 
         objects = MapObjects()
         for layer_path in layer_paths:
-            xpath = _objects_layer_path_to_xpath(layer_path) + "/object"
+            layer_xpath = _objects_layer_path_to_xpath(layer_path)
+            layer_node = self._root.find(layer_xpath)
+            if layer_node is None:
+                logging.critical(self._filename + ": " + layer_path + ": Not an objects layer path")
+                exit(1)
+
+            xpath = layer_xpath + "/object"
             for item_node in self._root.findall(xpath):
                 item_id = item_node.get("name")
                 item_class = item_node.get("type")
@@ -291,7 +297,17 @@ class TMX:
             layer_paths = [layer_paths]
 
         for layer_path in layer_paths:
-            xpath = _tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
+            layer_xpath = _tiles_layer_path_to_xpath(layer_path)
+            layer_node = self._root.find(layer_xpath)
+            if layer_node is None:
+                logging.critical(self._filename + ": " + layer_path + ": Not a graphics layer path")
+                exit(1)
+
+            xpath = layer_xpath + "/data[@encoding='csv']"
+            node = self._root.find(xpath)
+            if node is None:
+                logging.critical(self._filename + ": " + layer_path + ": Invalid graphics layer path, expected CSV-encoded data")
+                exit(1)
 
             # The size of the map, in pixels
             src_width, src_height = self.dimensions_in_pixels()
@@ -301,7 +317,7 @@ class TMX:
             offset_x, offset_y = (bg_width - src_width) // 2, (bg_height - src_height) // 2
 
             y2 = 0
-            for line in iter(self._root.find(xpath).text.splitlines()):
+            for line in iter(node.text.splitlines()):
                 if line == '':
                     continue;
 
@@ -330,8 +346,20 @@ class TMX:
 
         # Parse the CSV tiles data to turn in into a Python list of tile IDs.
         line_is_not_empty = lambda line: line != ''
-        xpath = _tiles_layer_path_to_xpath(layer_path) + "/data[@encoding='csv']"
-        lines = filter(line_is_not_empty, self._root.find(xpath).text.splitlines())
+
+        layer_xpath = _tiles_layer_path_to_xpath(layer_path)
+        layer_node = self._root.find(layer_xpath)
+        if layer_node is None:
+            logging.critical(self._filename + ": " + layer_path + ": Not a tiles layer path")
+            exit(1)
+
+        xpath = layer_xpath + "/data[@encoding='csv']"
+        node = self._root.find(xpath)
+        if node is None:
+            logging.critical(self._filename + ": " + layer_path + ": Invalid tiles layer path, expected CSV-encoded data")
+            exit(1)
+
+        lines = filter(line_is_not_empty, node.text.splitlines())
         tiles = [str(int(tile)) for line in lines for tile in line.strip(",").split(",")]
 
         # Check the list of tile IDs is valid.
@@ -339,6 +367,7 @@ class TMX:
         expected_n_tiles = self._columns * self._lines
         if n_tiles != expected_n_tiles:
             logging.critical(self._filename + ": " + layer_path + ": Invalid number of tiles, expected " + str(expected_n_tiles) + ", got " + str(n_tiles))
+            exit(1)
 
         return tiles
 
