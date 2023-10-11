@@ -29,6 +29,8 @@ import bntmx
 bntmx.process("butano", ["maps"], "build")
 ```
 
+The Butano target requires Butano 15.6.0 or greater.
+
 ## Usage
 
 Given a map named *mymap*, you should have the following files:
