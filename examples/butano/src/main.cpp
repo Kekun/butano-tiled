@@ -18,7 +18,7 @@ int main()
     bntmx::map* map = new bntmx::maps::wonderland();
 
     bn::regular_bg_ptr background = bn::regular_bg_items::wonderland_background.create_bg(0, 0);
-    bn::regular_bg_ptr layer = map->regular_bg_item().create_bg(0, 0, 0);
+    bn::regular_bg_ptr layer = std::get<bn::regular_bg_item>(map->graphics()).create_bg(0, 0, 0);
 
     background.set_camera(camera);
     layer.set_camera(camera);
