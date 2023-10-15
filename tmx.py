@@ -31,8 +31,8 @@ def _object_position(object_node: ET.Element) -> tuple[int,int]:
     # While the origin of maps is their top-left corner, the origin of
     # objects is their bottom left one, hence we have to substract half
     # their height and not add it to get their center.
-    x = int(object_node.get("x")) + int(object_node.get("width")) // 2
-    y = int(object_node.get("y")) - int(object_node.get("height")) // 2
+    x = int(object_node.get("x")) + int(object_node.get("width", 0)) // 2
+    y = int(object_node.get("y")) - int(object_node.get("height", 0)) // 2
     return x, y
 
 def _objects_layer_path_to_xpath(layer_path: str) -> str:
