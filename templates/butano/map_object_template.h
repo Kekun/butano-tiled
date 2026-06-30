@@ -1,0 +1,1 @@
+bntmx::map_object(bn::fixed_point({x}, {y}), {id})

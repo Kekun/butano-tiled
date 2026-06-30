@@ -1,0 +1,1 @@
+(bntmx_map_object) {0, 0, 0}

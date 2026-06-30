@@ -1,0 +1,1 @@
+(bntmx_span) {&_objects[_objects_spans[objects_layer_index][objects_class].index], _objects_spans[objects_layer_index][objects_class].length}

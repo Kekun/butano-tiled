@@ -1,0 +1,5 @@
+{{
+    "type": "regular_bg",
+    "bpp_mode": "bpp_4_auto",
+    "height": {bg_height}
+}}

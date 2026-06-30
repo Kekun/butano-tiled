@@ -1,0 +1,1 @@
+bn::span<const bntmx::map_object>()

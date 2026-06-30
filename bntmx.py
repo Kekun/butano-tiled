@@ -9,10 +9,60 @@ import argparse
 import json
 import os
 import re
-import bntemplate
-import ctemplate
 
 _targets = ['butano', 'c']
+
+def read_template(target, template):
+    bntmx_dir = os.path.dirname(os.path.realpath(__file__))
+    template_filename = os.path.join(bntmx_dir, 'templates', target, template)
+    template_file = open(template_filename, 'r')
+    return template_file.read()
+
+_templates = {
+    'butano': {
+        'graphics': read_template('butano', 'graphics.h'),
+        'header_template': read_template('butano', 'header_template.h'),
+        'map_object_template': read_template('butano', 'map_object_template.h'),
+        'object_classes_definition_empty': read_template('butano', 'object_classes_definition_empty.h'),
+        'object_classes_definition_template': read_template('butano', 'object_classes_definition_template.h'),
+        'object_dummy': read_template('butano', 'object_dummy.h'),
+        'object_getter': read_template('butano', 'object_getter.h'),
+        'object_ids_definition_empty': read_template('butano', 'object_ids_definition_empty.h'),
+        'object_ids_definition_template': read_template('butano', 'object_ids_definition_template.h'),
+        'objects_definition_empty': read_template('butano', 'objects_definition_empty.h'),
+        'objects_definition_template': read_template('butano', 'objects_definition_template.h'),
+        'objects_dummy': read_template('butano', 'objects_dummy.h'),
+        'objects_getter_classless': read_template('butano', 'objects_getter_classless.h'),
+        'objects_getter_with_class': read_template('butano', 'objects_getter_with_class.h'),
+        'source_template': read_template('butano', 'source_template.cpp'),
+        'tile_ids_definition_empty': read_template('butano', 'tile_ids_definition_empty.h'),
+        'tile_ids_definition_template': read_template('butano', 'tile_ids_definition_template.h'),
+        'tiles_definition_template': read_template('butano', 'tiles_definition_template.h'),
+        'tiles_dummy': read_template('butano', 'tiles_dummy.h'),
+        'tiles_getter_template': read_template('butano', 'tiles_getter_template.h'),
+    },
+    'c': {
+        'header_template': read_template('c', 'header_template.h'),
+        'map_object_template': read_template('c', 'map_object.h'),
+        'object_classes_definition_empty': read_template('c', 'object_classes_definition_empty.h'),
+        'object_classes_definition_template': read_template('c', 'object_classes_definition_template.h'),
+        'object_dummy': read_template('c', 'object_dummy.h'),
+        'object_getter': read_template('c', 'object_getter.h'),
+        'object_ids_definition_empty': read_template('c', 'object_ids_definition_empty.h'),
+        'object_ids_definition_template': read_template('c', 'object_ids_definition_template.h'),
+        'objects_definition_empty': read_template('c', 'objects_definition_empty.h'),
+        'objects_definition_template': read_template('c', 'objects_definition_template.h'),
+        'objects_dummy': read_template('c', 'objects_dummy.h'),
+        'objects_getter_classless': read_template('c', 'objects_getter.h'),
+        'objects_getter_with_class': read_template('c', 'objects_getter.h'),
+        'source_template': read_template('c', 'source_template.c'),
+        'tile_ids_definition_empty': read_template('c', 'tile_ids_definition_empty.h'),
+        'tile_ids_definition_template': read_template('c', 'tile_ids_definition_template.h'),
+        'tiles_definition_template': read_template('c', 'tiles_definition_template.h'),
+        'tiles_dummy': read_template('c', 'tiles_dummy.h'),
+        'tiles_getter_template': read_template('c', 'tiles_getter_template.h'),
+    },
+}
 
 def write_to_file(filename: str, text: str):
     f = open(filename, "w")
@@ -204,7 +254,7 @@ class TMXConverter:
         _, src_height = self._tmx.dimensions_in_pixels()
         bg_height = bg_size(src_height)
 
-        return bntemplate.graphics.format(bg_height=bg_height)
+        return _templates['butano']['graphics'].format(bg_height=bg_height)
 
     def butano_header(self):
         # Convert the TMX into its C++ header.
@@ -213,19 +263,18 @@ class TMXConverter:
         n_objects_layers = len(self._descriptor["objects"]) if "objects" in self._descriptor else 0
         n_tiles_layers = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
 
+        template = _templates[self._target]
         indentation = "    "
         if self._target == "butano":
             graphics = "bn::regular_bg_items::" + self._name if n_graphics_layers > 0 else "std::monostate()"
             graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if n_graphics_layers > 0 else ""
             indentation_depth = 1
             namespace = ""
-            template = bntemplate.template
         elif self._target == "c":
             graphics = ""
             graphics_include = ""
             indentation_depth = 0
             namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
-            template = ctemplate.template
 
         guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
         width_in_pixels, height_in_pixels = self._tmx.dimensions_in_pixels()
@@ -276,15 +325,14 @@ class TMXConverter:
     def butano_source(self):
         # Convert the TMX into its C++ source.
 
+        template = _templates[self._target]
         indentation = "    "
         if self._target == "butano":
             indentation_depth = 1
             namespace = "bntmx::maps::" + self._name + "::"
-            template = bntemplate.template
         elif self._target == "c":
             indentation_depth = 0
             namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
-            template = ctemplate.template
 
         header_filename = "bntmx_maps_" + self._name + ".h"
 
@@ -352,6 +400,7 @@ class TMXConverter:
 def process(target, maps_dirs, build_dir):
     assert target in _targets
 
+    bntmx_dir = os.path.dirname(os.path.realpath(__file__))
     build_graphics_dir = os.path.join(build_dir, "graphics")
     build_include_dir = os.path.join(build_dir, "include")
     build_src_dir = os.path.join(build_dir, "src")
@@ -367,10 +416,7 @@ def process(target, maps_dirs, build_dir):
 
     # Export the global header
     include_filename = os.path.join(build_dir, "include", "bntmx.h")
-    if target == "butano":
-        include = bntemplate.include
-    elif target == "c":
-        include = ctemplate.include
+    include = read_template(target, "bntmx.h")
     write_to_file(include_filename, include)
 
     for maps_dir in maps_dirs:
