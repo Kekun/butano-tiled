@@ -14,6 +14,7 @@ include = '''\
 
 #include <bn_affine_bg_item.h>
 #include <bn_fixed_point.h>
+#include <bn_point.h>
 #include <bn_size.h>
 #include <bn_span.h>
 #include <bn_regular_bg_item.h>
@@ -125,6 +126,80 @@ public:
      * @param tiles_layer_index Index of the tiles layer.
      */
     virtual const bn::span<const bntmx::map_tile> tiles(int tiles_layer_index) const = 0;
+
+    /**
+     * @brief Returns the index of the referenced map tile in the specified map tile coordinates.
+     *
+     * @param tile_x Horizontal position of the map tile [0..dimensions_in_tiles().width()).
+     * @param tile_y Vertical position of the map tile [0..dimensions_in_tiles().height()).
+     * @return The index of the referenced map tile.
+     */
+    [[nodiscard]] constexpr int tile_index(int tile_x, int tile_y) const
+    {
+        int width = dimensions_in_tiles().width();
+        BN_ASSERT(tile_x >= 0 && tile_x < width, "Invalid map tile x: ", tile_x, " - ", width);
+        BN_ASSERT(tile_y >= 0 && tile_y < dimensions_in_tiles().height(), "Invalid map tile y: ", tile_y, " - ", dimensions_in_tiles().height());
+
+        return (tile_y * width) + tile_x;
+    }
+
+    /**
+     * @brief Returns the index of the referenced map tile in the specified map tile coordinates.
+     *
+     * @param map_position Position of the map tile.
+     * @return The index of the referenced map tile.
+     */
+    [[nodiscard]] constexpr int tile_index(const bn::point& map_position) const
+    {
+        return tile_index(map_position.x(), map_position.y());
+    }
+
+    /**
+     * @brief Returns the referenced map tile in the specified map tile coordinates.
+     *
+     * @param tile_x Horizontal position of the map tile [0..dimensions_in_tiles().width()).
+     * @param tile_y Vertical position of the map tile [0..dimensions_in_tiles().height()).
+     * @return The referenced map tile.
+     */
+    [[nodiscard]] constexpr bntmx::map_tile tile(int tiles_layer_index, int tile_x, int tile_y) const
+    {
+        return tiles(tiles_layer_index)[tile_index(tile_x, tile_y)];
+    }
+
+    /**
+     * @brief Returns the index of the referenced map tile in the specified map tile coordinates.
+     *
+     * @param tile_x Horizontal position of the map tile [0..dimensions_in_tiles().width()).
+     * @param tile_y Vertical position of the map tile [0..dimensions_in_tiles().height()).
+     * @return The index of the referenced map tile.
+     */
+    [[nodiscard]] constexpr int tile_index_in_pixels(int tile_x, int tile_y) const
+    {
+        return tile_index(tile_x / tile_dimensions().width(), tile_y / tile_dimensions().height());
+    }
+
+    /**
+     * @brief Returns the index of the referenced map tile in the specified map tile coordinates.
+     *
+     * @param map_position Position of the map tile.
+     * @return The index of the referenced map tile.
+     */
+    [[nodiscard]] constexpr int tile_index_in_pixels(const bn::point& map_position) const
+    {
+        return tile_index_in_pixels(map_position.x(), map_position.y());
+    }
+
+    /**
+     * @brief Returns the referenced map tile in the specified map tile coordinates.
+     *
+     * @param tile_x Horizontal position of the map tile [0..dimensions_in_tiles().width()).
+     * @param tile_y Vertical position of the map tile [0..dimensions_in_tiles().height()).
+     * @return The referenced map tile.
+     */
+    [[nodiscard]] constexpr bntmx::map_tile tile_in_pixels(int tiles_layer_index, int tile_x, int tile_y) const
+    {
+        return tiles(tiles_layer_index)[tile_index_in_pixels(tile_x, tile_y)];
+    }
 };
 
 }
