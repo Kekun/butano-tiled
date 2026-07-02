@@ -193,8 +193,15 @@ class TMXConverter:
         for i, layer_path in enumerate(self._descriptor["graphics"]):
             self._tmx.compose(gfx_im, layer_path, 0, bg_height * i)
 
-        # Make the image paletted
-        gfx_im = gfx_im.quantize(256)
+        # Make the image paletted.
+        color_list = gfx_im.getcolors()
+        num_colors = 256
+        if color_list is not None:
+            num_colors = min(256, len(color_list))
+        gfx_im = gfx_im.quantize(num_colors)
+
+        # By default PIL saves with a palette of 256 colors. Reduce to only actually used colors.
+        gfx_im.putpalette(gfx_im.getpalette()[: num_colors * 3])
 
         return gfx_im
 
