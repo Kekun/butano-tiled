@@ -29,7 +29,7 @@
 #---------------------------------------------------------------------------------------------------------------------
 TARGET      :=  $(notdir $(CURDIR))
 BUILD       :=  build
-LIBBUTANO   :=  ../../../butano/butano
+LIBBUTANO   :=  ../../modules/butano/butano
 PYTHON      :=  python
 SOURCES     :=  src $(BUILD)/src
 INCLUDES    :=  include $(BUILD)/include

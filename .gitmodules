@@ -1,0 +1,4 @@
+[submodule "butano"]
+	path = modules/butano
+	url = https://github.com/GValiente/butano.git
+	branch = 38349d524e6f20499bd8c88e2b502db9646ed969
