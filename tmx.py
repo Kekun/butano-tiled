@@ -129,7 +129,8 @@ class TSX:
         self._tile_height = int(self._root.find(".").get("tileheight"))
         self._columns = int(self._root.find(".").get("columns"))
         self._lines = self._n_tiles // self._columns
-        self._image = Image.open(self.image_filename())
+        # Convert to RGBA to allow composing tiles using different color modes / palettes.
+        self._image = Image.open(self.image_filename()).convert("RGBA")
 
     def filename(self) -> str:
         """
