@@ -78,17 +78,17 @@ public:
     /**
      * @brief Returns the number of regular background layers of the map.
      */
-    virtual constexpr int n_regular_bg_layers() const = 0;
+    virtual constexpr int regular_bg_layers_count() const = 0;
 
     /**
      * @brief Returns the number of objects layers of the map.
      */
-    virtual constexpr int n_objects_layers() const = 0;
+    virtual constexpr int objects_layers_count() const = 0;
 
     /**
      * @brief Returns the number of tiles layers of the map.
      */
-    virtual constexpr int n_tiles_layers() const = 0;
+    virtual constexpr int tiles_layers_count() const = 0;
 
     /**
      * @brief Returns the regular background layers of the map.

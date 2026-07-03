@@ -28,9 +28,9 @@ public:
     constexpr int height_in_tiles() const {{ return {map._height_in_tiles}; }}
     constexpr int tile_width() const {{ return {map._tile_width}; }}
     constexpr int tile_height() const {{ return {map._tile_height}; }}
-    constexpr int n_regular_bg_layers() const {{ return {map._regular_bg_layers_count}; }}
-    constexpr int n_objects_layers() const {{ return {map._objects_layers_count}; }}
-    constexpr int n_tiles_layers() const {{ return {map._tiles_layers_count}; }}
+    constexpr int regular_bg_layers_count() const {{ return {map._regular_bg_layers_count}; }}
+    constexpr int objects_layers_count() const {{ return {map._objects_layers_count}; }}
+    constexpr int tiles_layers_count() const {{ return {map._tiles_layers_count}; }}
     constexpr bn::optional<bn::regular_bg_item> regular_bg() const {{ return {regular_bg}; }}
 
     const bntmx::map_object object(int id) const;
