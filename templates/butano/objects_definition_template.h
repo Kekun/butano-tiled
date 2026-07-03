@@ -7,4 +7,4 @@
 
     // This purposefully doesn't use bn::span so we can use smaller types,
     // saving ROM space.
-    static constexpr struct {{uint16_t index; uint16_t length;}} _objects_spans[{n_objects_layers}][{n_objects_classes}] = {objects_spans};
+    static constexpr struct {{uint16_t index; uint16_t length;}} _objects_spans[{objects_layers_count}][{objects_classes_count}] = {objects_spans};

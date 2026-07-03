@@ -124,11 +124,11 @@ class TSX:
         self._filename = os.path.realpath(filename)
         self._root = ET.parse(filename)
 
-        self._n_tiles = int(self._root.find(".").get("tilecount"))
+        self._tiles_count = int(self._root.find(".").get("tilecount"))
         self._tile_width = int(self._root.find(".").get("tilewidth"))
         self._tile_height = int(self._root.find(".").get("tileheight"))
         self._columns = int(self._root.find(".").get("columns"))
-        self._lines = self._n_tiles // self._columns
+        self._lines = self._tiles_count // self._columns
         self._image = Image.open(self.image_filename())
 
     def filename(self) -> str:
@@ -150,14 +150,14 @@ class TSX:
         directory = os.path.dirname(self._filename)
         return os.path.join(directory, self._root.find("./image").get("source"))
 
-    def n_tiles(self) -> int:
+    def tiles_count(self) -> int:
         """
         Return the number of tiles in the set.
 
         :returns: the number of tiles in the set
         """
 
-        return self._n_tiles
+        return self._tiles_count
 
     def compose(self, dst_image: PIL.Image.Image, tile_id: int, x: int, y: int):
         """
@@ -193,7 +193,7 @@ class TMX:
         for tileset in self._root.findall("./tileset"):
             tsx = TSX(os.path.join(directory, tileset.get("source")))
             first_id = int(tileset.get("firstgid"))
-            last_id = first_id + tsx.n_tiles() - 1
+            last_id = first_id + tsx.tiles_count() - 1
             self._tilesets.append((first_id, last_id, tsx))
 
     def dependencies(self) -> list[str]:
@@ -363,10 +363,10 @@ class TMX:
         tiles = [str(int(tile)) for line in lines for tile in line.strip(",").split(",")]
 
         # Check the list of tile IDs is valid.
-        n_tiles = len(tiles)
-        expected_n_tiles = self._columns * self._lines
-        if n_tiles != expected_n_tiles:
-            logging.critical(self._filename + ": " + layer_path + ": Invalid number of tiles, expected " + str(expected_n_tiles) + ", got " + str(n_tiles))
+        tiles_count = len(tiles)
+        expected_tiles_count = self._columns * self._lines
+        if tiles_count != expected_tiles_count:
+            logging.critical(self._filename + ": " + layer_path + ": Invalid tiles count, expected " + str(expected_tiles_count) + ", got " + str(tiles_count))
             exit(1)
 
         return tiles
@@ -382,12 +382,12 @@ class TMX:
         if isinstance(layer_paths, str):
             return self._tiles(layer_paths)
 
-        n_tiles = self._columns * self._lines
-        n_layers = len(layer_paths)
+        tiles_count = self._columns * self._lines
+        layers_count = len(layer_paths)
         # Reversed so we can look for non-empty tiles starting from the topmost layer
         tiles_layers = reversed(list(map(self._tiles, layer_paths)))
         tiles = []
-        for i in range(0, n_tiles):
+        for i in range(0, tiles_count):
             tile = '0'
             for tiles_layer in tiles_layers:
                 if tiles_layer[i] != '0':

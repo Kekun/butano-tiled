@@ -27,9 +27,9 @@ public:
     constexpr int height_in_tiles() const {{ return {height_in_tiles}; }}
     constexpr int tile_width() const {{ return {tile_width}; }}
     constexpr int tile_height() const {{ return {tile_height}; }}
-    constexpr int n_graphics_layers() const {{ return {n_graphics_layers}; }}
-    constexpr int n_objects_layers() const {{ return {n_objects_layers}; }}
-    constexpr int n_tiles_layers() const {{ return {n_tiles_layers}; }}
+    constexpr int n_graphics_layers() const {{ return {graphics_layers_count}; }}
+    constexpr int n_objects_layers() const {{ return {objects_layers_count}; }}
+    constexpr int n_tiles_layers() const {{ return {tiles_layers_count}; }}
     constexpr std::variant<std::monostate, bn::regular_bg_item, bn::affine_bg_item> graphics() const {{ return {graphics}; }}
 
     const bntmx::map_object object(int id) const;

@@ -1,1 +1,1 @@
-    static const bntmx::map_tile _tiles[{n_tiles_layers}][{size}] = {tiles};
+    static const bntmx::map_tile _tiles[{tiles_layers_count}][{size}] = {tiles};
