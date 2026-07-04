@@ -144,7 +144,25 @@ class TMXConverter:
 
         # The list of MapObjects for the list of object layers
         self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"] if "objects" in self._descriptor else []))
+        # This needs to be called once self._objects_layers_objects is set
         self._assign_id_and_layer_to_objects()
+        # The list of MapObjects for the whole map
+        #
+        # This needs to be called after self._assign_id_and_layer_to_objects()
+        # as otherwise it wouldn't match self._objects_layers_objects anynmore
+        self._objects = sorted([map_object for layer_map_objects in self._objects_layers_objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
+
+        self._width_in_pixels, self._height_in_pixels = self._tmx.dimensions_in_pixels()
+        self._width_in_tiles, self._height_in_tiles = self._tmx.dimensions_in_tiles()
+        self._tile_width, self._tile_height = self._tmx.tile_dimensions()
+
+        self._graphics_layers_count = len(self._descriptor["graphics"]) if "graphics" in self._descriptor else 0
+        self._objects_layers_count = len(self._descriptor["objects"]) if "objects" in self._descriptor else 0
+        self._tiles_layers_count = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
+
+        self._objects_classes_count = len(self._objects_classes())
+        self._objects_count = len(self._objects)
+        self._tiles_layers_tiles_count = self._width_in_tiles * self._height_in_tiles
 
     def _assign_id_and_layer_to_objects(self):
         objects_classes = self._objects_classes()
@@ -176,15 +194,10 @@ class TMXConverter:
 
         return list(map(lambda i_and_object_class: namespace + mangle(i_and_object_class[1]).upper() + "=" + str(i_and_object_class[0]), enumerate(self._objects_classes())))[1:]
 
-    def _objects(self):
-        # Return the list of map objects in the whole map
-
-        return sorted([map_object for layer_map_objects in self._objects_layers_objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
-
     def _object_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
 
-        return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._objects() if map_object.id is not None]
+        return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._objects if map_object.id is not None]
 
     def _tile_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map tile ids in the whole map
@@ -259,15 +272,11 @@ class TMXConverter:
     def butano_header(self):
         # Convert the TMX into its C++ header.
 
-        graphics_layers_count = len(self._descriptor["graphics"]) if "graphics" in self._descriptor else 0
-        objects_layers_count = len(self._descriptor["objects"]) if "objects" in self._descriptor else 0
-        tiles_layers_count = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
-
         template = _templates[self._target]
         indentation = "    "
         if self._target == "butano":
-            graphics = "bn::regular_bg_items::" + self._name if graphics_layers_count > 0 else "std::monostate()"
-            graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if graphics_layers_count > 0 else ""
+            graphics = "bn::regular_bg_items::" + self._name if self._graphics_layers_count > 0 else "std::monostate()"
+            graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if self._graphics_layers_count > 0 else ""
             indentation_depth = 1
             namespace = ""
         elif self._target == "c":
@@ -277,10 +286,6 @@ class TMXConverter:
             namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
 
         guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
-        width_in_pixels, height_in_pixels = self._tmx.dimensions_in_pixels()
-        width_in_tiles, height_in_tiles = self._tmx.dimensions_in_tiles()
-        tile_width, tile_height = self._tmx.tile_dimensions()
-        objects = self._objects_layers_objects
 
         objects_classes = self._objects_classes_enum(namespace)
         if len(objects_classes) == 0:
@@ -306,21 +311,21 @@ class TMXConverter:
         return template['header_template'].format(
             graphics=graphics,
             graphics_include=graphics_include,
-            graphics_layers_count=graphics_layers_count,
+            graphics_layers_count=self._graphics_layers_count,
             guard=guard,
-            height_in_pixels=height_in_pixels,
-            height_in_tiles=height_in_tiles,
+            height_in_pixels=self._height_in_pixels,
+            height_in_tiles=self._height_in_tiles,
             map_name=self._name,
             objects_classes_definition=objects_classes_definition,
             object_ids_definition=object_ids_definition,
-            objects_count=len(objects),
-            objects_layers_count=objects_layers_count,
-            tile_height=tile_height,
+            objects_count=self._objects_count,
+            objects_layers_count=self._objects_layers_count,
+            tile_height=self._tile_height,
             tile_ids_definition=tile_ids_definition,
-            tile_width=tile_width,
-            tiles_layers_count=tiles_layers_count,
-            width_in_pixels=width_in_pixels,
-            width_in_tiles=width_in_tiles)
+            tile_width=self._tile_width,
+            tiles_layers_count=self._tiles_layers_count,
+            width_in_pixels=self._width_in_pixels,
+            width_in_tiles=self._width_in_tiles)
 
     def butano_source(self):
         # Convert the TMX into its C++ source.
@@ -336,27 +341,18 @@ class TMXConverter:
 
         header_filename = "bntmx_maps_" + self._name + ".h"
 
-        width_in_tiles, height_in_tiles = self._tmx.dimensions_in_tiles()
-        graphics_layers_count = len(self._descriptor["graphics"]) if "graphics" in self._descriptor else 0
-        objects_layers_count = len(self._descriptor["objects"]) if "objects" in self._descriptor else 0
-        tiles_layers_count = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
-        tiles_layers_tiles_count = width_in_tiles * height_in_tiles
-
-        objects_classes_count = len(self._objects_classes())
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._objects_spans()), indentation, indentation_depth)
-        objects = self._objects()
-        objects_count = len(objects)
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
-        objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), indentation, indentation_depth)
+        objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), indentation, indentation_depth)
 
         # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
-        tiles_to_array_literal = lambda tiles: multiline_c_array([', '.join(tiles[i:i + width_in_tiles]) for i in range(0, len(tiles), width_in_tiles)], indentation, indentation_depth + 1)
+        tiles_to_array_literal = lambda tiles: multiline_c_array([', '.join(tiles[i:i + self._width_in_tiles]) for i in range(0, len(tiles), self._width_in_tiles)], indentation, indentation_depth + 1)
         # Get the C or C++ array literal of tiles for the given tiles layer path.
         tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
         # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
         tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"] if "tiles" in self._descriptor else [])), indentation, indentation_depth)
 
-        if objects_count == 0 or objects_classes_count == 0 or objects_layers_count == 0:
+        if self._objects_count == 0 or self._objects_classes_count == 0 or self._objects_layers_count == 0:
             object_getter = template['object_dummy']
             objects_definition = template['objects_definition_empty']
             objects_getter_classless = template['objects_dummy']
@@ -364,38 +360,38 @@ class TMXConverter:
         else:
             object_getter = template['object_getter']
             objects_definition = template['objects_definition_template'].format(
-                objects_classes_count=objects_classes_count,
-                objects_layers_count=objects_layers_count,
+                objects_classes_count=self._objects_classes_count,
+                objects_layers_count=self._objects_layers_count,
                 objects=objects_literal,
                 objects_spans=objects_spans)
             objects_getter_classless = template['objects_getter_classless']
             objects_getter_with_class = template['objects_getter_with_class']
 
-        if tiles_layers_tiles_count == 0 or tiles_layers_count == 0:
+        if self._tiles_layers_tiles_count == 0 or self._tiles_layers_count == 0:
             tiles_definition = ''
             tiles_getter = template['tiles_dummy']
         else:
             tiles_definition = template['tiles_definition_template'].format(
-                tiles_layers_count=tiles_layers_count,
-                tiles_layers_tiles_count=tiles_layers_tiles_count,
+                tiles_layers_count=self._tiles_layers_count,
+                tiles_layers_tiles_count=self._tiles_layers_tiles_count,
                 tiles=tiles_literal)
-            tiles_getter = template['tiles_getter_template'].format(tiles_layers_tiles_count=tiles_layers_tiles_count)
+            tiles_getter = template['tiles_getter_template'].format(tiles_layers_tiles_count=self._tiles_layers_tiles_count)
 
         return template['source_template'].format(
             header_filename=os.path.basename(header_filename),
             map_name=self._name,
             object_getter=object_getter,
-            objects_classes_count=objects_classes_count,
-            objects_count=objects_count,
+            objects_classes_count=self._objects_classes_count,
+            objects_count=self._objects_count,
             objects_definition=objects_definition,
             objects_getter_classless=objects_getter_classless,
             objects_getter_with_class=objects_getter_with_class,
-            objects_layers_count=objects_layers_count,
+            objects_layers_count=self._objects_layers_count,
             tiles=tiles_literal,
-            tiles_layers_tiles_count=tiles_layers_tiles_count,
             tiles_definition=tiles_definition,
             tiles_getter=tiles_getter,
-            tiles_layers_count=tiles_layers_count)
+            tiles_layers_count=self._tiles_layers_count,
+            tiles_layers_tiles_count=self._tiles_layers_tiles_count)
 
 def process(target, maps_dirs, build_dir):
     assert target in _targets
