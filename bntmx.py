@@ -196,7 +196,7 @@ class TMXConverter:
             tile_ids.append(namespace + enum_base + "_LAST=" + str(last))
         return tile_ids
 
-    def _object_spans(self):
+    def _objects_spans(self):
         # Return a list for each layer of lists of (index,length) pairs for each
         # object of a given class in the layer, so objects can be flattened but
         # they can still be found per layer and class.
@@ -343,7 +343,7 @@ class TMXConverter:
         tiles_layers_tiles_count = width_in_tiles * height_in_tiles
 
         objects_classes_count = len(self._objects_classes())
-        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._object_spans()), indentation, indentation_depth)
+        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._objects_spans()), indentation, indentation_depth)
         objects = self._objects()
         objects_count = len(objects)
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
