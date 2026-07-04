@@ -22,6 +22,7 @@ _templates = {
     'butano': {
         'graphics': read_template('butano', 'graphics.h'),
         'header_template': read_template('butano', 'header_template.h'),
+        'indentation': '    ',
         'map_object_template': read_template('butano', 'map_object_template.h'),
         'object_dummy': read_template('butano', 'object_dummy.h'),
         'object_getter': read_template('butano', 'object_getter.h'),
@@ -43,6 +44,7 @@ _templates = {
     },
     'c': {
         'header_template': read_template('c', 'header_template.h'),
+        'indentation': '    ',
         'map_object_template': read_template('c', 'map_object.h'),
         'object_dummy': read_template('c', 'object_dummy.h'),
         'object_getter': read_template('c', 'object_getter.h'),
@@ -273,7 +275,6 @@ class TMXConverter:
         # Convert the TMX into its C++ header.
 
         template = _templates[self._target]
-        indentation = "    "
         if self._target == "butano":
             graphics = "bn::regular_bg_items::" + self._name if self._graphics_layers_count > 0 else "std::monostate()"
             graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if self._graphics_layers_count > 0 else ""
@@ -291,21 +292,21 @@ class TMXConverter:
         if len(objects_classes) == 0:
             objects_classes_definition = template['objects_classes_definition_empty']
         else:
-            objects_classes_literal = multiline_c_array(objects_classes, indentation, indentation_depth)
+            objects_classes_literal = multiline_c_array(objects_classes, template['indentation'], indentation_depth)
             objects_classes_definition = template['objects_classes_definition_template'].format(map_name=self._name, objects_classes=objects_classes_literal)
 
         object_ids = self._object_ids_enum(namespace)
         if len(object_ids) == 0:
             object_ids_definition = template['object_ids_definition_empty']
         else:
-            object_ids_literal = multiline_c_array(object_ids, indentation, indentation_depth)
+            object_ids_literal = multiline_c_array(object_ids, template['indentation'], indentation_depth)
             object_ids_definition = template['object_ids_definition_template'].format(map_name=self._name, object_ids=object_ids_literal)
 
         tile_ids = self._tile_ids_enum(namespace)
         if len(tile_ids) == 0:
             tile_ids_definition = template['tile_ids_definition_empty']
         else:
-            tile_ids_literal = multiline_c_array(tile_ids, indentation, indentation_depth)
+            tile_ids_literal = multiline_c_array(tile_ids, template['indentation'], indentation_depth)
             tile_ids_definition = template['tile_ids_definition_template'].format(map_name=self._name, tile_ids=tile_ids_literal)
 
         return template['header_template'].format(
@@ -331,7 +332,6 @@ class TMXConverter:
         # Convert the TMX into its C++ source.
 
         template = _templates[self._target]
-        indentation = "    "
         if self._target == "butano":
             indentation_depth = 1
             namespace = "bntmx::maps::" + self._name + "::"
@@ -341,16 +341,16 @@ class TMXConverter:
 
         header_filename = "bntmx_maps_" + self._name + ".h"
 
-        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._objects_spans()), indentation, indentation_depth)
+        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), template['indentation'], indentation_depth + 1), self._objects_spans()), template['indentation'], indentation_depth)
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
-        objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), indentation, indentation_depth)
+        objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), template['indentation'], indentation_depth)
 
         # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
-        tiles_to_array_literal = lambda tiles: multiline_c_array([', '.join(tiles[i:i + self._width_in_tiles]) for i in range(0, len(tiles), self._width_in_tiles)], indentation, indentation_depth + 1)
+        tiles_to_array_literal = lambda tiles: multiline_c_array([', '.join(tiles[i:i + self._width_in_tiles]) for i in range(0, len(tiles), self._width_in_tiles)], template['indentation'], indentation_depth + 1)
         # Get the C or C++ array literal of tiles for the given tiles layer path.
         tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
         # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
-        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"] if "tiles" in self._descriptor else [])), indentation, indentation_depth)
+        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"] if "tiles" in self._descriptor else [])), template['indentation'], indentation_depth)
 
         if self._objects_count == 0 or self._objects_classes_count == 0 or self._objects_layers_count == 0:
             object_getter = template['object_dummy']
