@@ -176,7 +176,7 @@ class TMXConverter:
 
         return list(map(lambda i_and_object_class: namespace + mangle(i_and_object_class[1]).upper() + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
 
-    def _all_objects(self):
+    def _objects(self):
         # Return the list of map objects in the whole map
 
         return sorted([map_object for layer_map_objects in self._objects_layers_objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
@@ -184,7 +184,7 @@ class TMXConverter:
     def _object_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
 
-        return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._all_objects() if map_object.id is not None]
+        return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._objects() if map_object.id is not None]
 
     def _tile_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map tile ids in the whole map
@@ -344,7 +344,7 @@ class TMXConverter:
 
         objects_classes_count = len(self._object_classes())
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._object_spans()), indentation, indentation_depth)
-        objects = self._all_objects()
+        objects = self._objects()
         objects_count = len(objects)
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
         objects_literal = multiline_c_array(list(map(object_to_cpp_literal, objects)), indentation, indentation_depth)
