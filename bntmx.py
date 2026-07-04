@@ -77,7 +77,7 @@ def inline_c_array(l: list) -> str:
     :returns: the inline array literal
     """
 
-    return "{" + ",".join(map(str, l)) + "}"
+    return '{ ' + ', '.join(map(str, l)) + ' }'
 
 def multiline_c_array(l: list, indentation: str, depth: int) -> str:
     """
