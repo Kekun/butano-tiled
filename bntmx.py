@@ -340,7 +340,7 @@ class TMXConverter:
         graphics_layers_count = len(self._descriptor["graphics"]) if "graphics" in self._descriptor else 0
         objects_layers_count = len(self._descriptor["objects"]) if "objects" in self._descriptor else 0
         tiles_layers_count = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
-        size = width_in_tiles * height_in_tiles
+        tiles_layers_tiles_count = width_in_tiles * height_in_tiles
 
         objects_classes_count = len(self._object_classes())
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._object_spans()), indentation, indentation_depth)
@@ -371,15 +371,15 @@ class TMXConverter:
             objects_getter_classless = template['objects_getter_classless']
             objects_getter_with_class = template['objects_getter_with_class']
 
-        if size == 0 or tiles_layers_count == 0:
+        if tiles_layers_tiles_count == 0 or tiles_layers_count == 0:
             tiles_definition = ''
             tiles_getter = template['tiles_dummy']
         else:
             tiles_definition = template['tiles_definition_template'].format(
                 tiles_layers_count=tiles_layers_count,
-                size=size,
+                tiles_layers_tiles_count=tiles_layers_tiles_count,
                 tiles=tiles_literal)
-            tiles_getter = template['tiles_getter_template'].format(size=size)
+            tiles_getter = template['tiles_getter_template'].format(tiles_layers_tiles_count=tiles_layers_tiles_count)
 
         return template['source_template'].format(
             header_filename=os.path.basename(header_filename),
@@ -391,8 +391,8 @@ class TMXConverter:
             objects_getter_classless=objects_getter_classless,
             objects_getter_with_class=objects_getter_with_class,
             objects_layers_count=objects_layers_count,
-            size=size,
             tiles=tiles_literal,
+            tiles_layers_tiles_count=tiles_layers_tiles_count,
             tiles_definition=tiles_definition,
             tiles_getter=tiles_getter,
             tiles_layers_count=tiles_layers_count)

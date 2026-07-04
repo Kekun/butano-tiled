@@ -1,1 +1,1 @@
-bn::span(_tiles[tiles_layer_index], {size})
+bn::span(_tiles[tiles_layer_index], {tiles_layers_tiles_count})

@@ -1,1 +1,1 @@
-(bntmx_span) {{_tiles[tiles_layer_index], {size}}}
+(bntmx_span) {{_tiles[tiles_layer_index], {tiles_layers_tiles_count}}}
