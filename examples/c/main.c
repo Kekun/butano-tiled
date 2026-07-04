@@ -4,7 +4,7 @@
  */
 
 #include <bntmx.h>
-#include <bntmx_maps_wonderland.h>
+#include <bntmx_map_items_wonderland.h>
 
 int main()
 {

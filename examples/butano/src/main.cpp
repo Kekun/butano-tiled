@@ -8,14 +8,14 @@
 #include <bn_display.h>
 #include "bn_regular_bg_items_wonderland_background.h"
 #include "bn_regular_bg_ptr.h"
-#include "bntmx_maps_wonderland.h"
+#include "bntmx_map_items_wonderland.h"
 
 int main()
 {
     bn::core::init();
 
     bn::camera_ptr camera = bn::camera_ptr::create(0, 0);
-    bntmx::map* map = new bntmx::maps::wonderland();
+    bntmx::map_item* map = new bntmx::map_items::wonderland();
 
     bn::regular_bg_ptr background = bn::regular_bg_items::wonderland_background.create_bg(0, 0);
     bn::regular_bg_ptr layer = map->regular_bg()->create_bg(0, 0, 0);

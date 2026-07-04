@@ -1,15 +1,15 @@
-#ifndef BNTMX_MAPS_{map._name_upper}_H
-#define BNTMX_MAPS_{map._name_upper}_H
+#ifndef BNTMX_MAP_ITEMS_{map._name_upper}_H
+#define BNTMX_MAP_ITEMS_{map._name_upper}_H
 
 {includes}
 
 {regular_bg_grit_literal}
 
-namespace bntmx::maps
+namespace bntmx::map_items
 {{
 {regular_bg_literal}
 
-class {map._name} : public bntmx::map
+class {map._name} : public bntmx::map_item
 {{
 
 public:

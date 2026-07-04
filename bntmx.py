@@ -635,7 +635,7 @@ class MapItem:
             case Target.c:
                 regular_bg = ""
                 indentation_depth = 0
-                namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+                namespace = "BNTMX_MAP_ITEMS_" + self._name.upper() + "_"
             case _:
                 raise ValueError('Unknown target: ' + str(self._target))
 
@@ -722,10 +722,10 @@ class MapItem:
         match self._target:
             case Target.butano:
                 indentation_depth = 1
-                namespace = "bntmx::maps::" + self._name + "::"
+                namespace = "bntmx::map_items::" + self._name + "::"
             case Target.c:
                 indentation_depth = 0
-                namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+                namespace = "BNTMX_MAP_ITEMS_" + self._name.upper() + "_"
             case _:
                 raise ValueError('Unknown target: ' + str(self._target))
 
@@ -800,12 +800,12 @@ def process(target: Target, grit, maps_dirs, build_dir):
 
                 tmx_json_filename = os.path.join(maps_dir, map_basename + ".json")
                 bmp_filename = os.path.join(build_dir, map_name + ".bntmx.bmp")
-                header_filename = os.path.join(build_dir, "include", "bntmx_maps_" + map_name + ".h")
+                header_filename = os.path.join(build_dir, "include", "bntmx_map_items_" + map_name + ".h")
                 match target:
                     case Target.butano:
-                        source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
+                        source_filename = os.path.join(build_dir, "src", "bntmx_map_items_" + map_name + ".cpp")
                     case Target.c:
-                        source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".c")
+                        source_filename = os.path.join(build_dir, "src", "bntmx_map_items_" + map_name + ".c")
                     case _:
                         raise ValueError('Unknown target: ' + str(target))
 

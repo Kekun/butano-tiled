@@ -1,6 +1,6 @@
-#include "bntmx_maps_{map._name}.h"
+#include "bntmx_map_items_{map._name}.h"
 
-namespace bntmx::maps
+namespace bntmx::map_items
 {{
 {objects_definition}
 

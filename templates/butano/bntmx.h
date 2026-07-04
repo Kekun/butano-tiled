@@ -24,11 +24,11 @@ struct map_object
 
 typedef uint16_t map_tile;
 
-class map
+class map_item
 {
 
 public:
-    virtual constexpr ~map() {}
+    virtual constexpr ~map_item() {}
 
     /**
      * @brief Returns the dimensions of the map in pixels.

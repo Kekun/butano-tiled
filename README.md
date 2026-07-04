@@ -39,13 +39,13 @@ Given a map named *world*, you should have the following files:
 
 The script will generate the following files:
 - `build/world.bntmx.bmp`
-- `build/include/bntmx_maps_world.h`
-- `build/src/bntmx_maps_world.cpp`
+- `build/include/bntmx_map_items_world.h`
+- `build/src/bntmx_map_items_world.cpp`
 
-Each map is converted into an implementation of the abstract class `bntmx::map`
-listed in the `bntmx::maps` namespace.
-In our example, the class `bntmx::maps::world` is created and can be accessed
-via `bntmx_maps_world.h`.
+Each map is converted into an object of type `bntmx::map_item` listed in the
+`bntmx::map_items` namespace.
+In our example, the class `bntmx::map_items::world` is created and can be
+accessed via `bntmx_map_items_world.h`.
 
 A map is rebuilt only if only of the files describing it changed, including the
 tilesets and their graphics.
