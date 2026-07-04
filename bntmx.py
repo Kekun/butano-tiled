@@ -143,7 +143,7 @@ class TMXConverter:
             self._descriptor["tiles"] = []
 
         # The list of MapObjects for the list of object layers
-        self._objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"] if "objects" in self._descriptor else []))
+        self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"] if "objects" in self._descriptor else []))
         self._assign_id_and_layer_to_objects()
 
     def _assign_id_and_layer_to_objects(self):
@@ -151,7 +151,7 @@ class TMXConverter:
         id = 0
 
         # Layers are already sorted, let's first sort by layers
-        for layer_index, layer_map_objects in enumerate(self._objects):
+        for layer_index, layer_map_objects in enumerate(self._objects_layers_objects):
             objects = layer_map_objects.objects()
 
             # Then sort by classes
@@ -169,7 +169,7 @@ class TMXConverter:
         # Return the sorted set of map object class names in the whole map, including the "" class
         # If there are no objects layers an empty list is returned, there is not even the "" class.
 
-        return sorted(set([map_object_class for layer_map_objects in self._objects for map_object_class in layer_map_objects.objects().keys()]))
+        return sorted(set([map_object_class for layer_map_objects in self._objects_layers_objects for map_object_class in layer_map_objects.objects().keys()]))
 
     def _object_classes_enum(self, namespace):
         # Return the list of enumeration definitions for the map object class names in the whole map, excluding the "" class
@@ -179,7 +179,7 @@ class TMXConverter:
     def _all_objects(self):
         # Return the list of map objects in the whole map
 
-        return sorted([map_object for layer_map_objects in self._objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
+        return sorted([map_object for layer_map_objects in self._objects_layers_objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
 
     def _object_ids_enum(self, namespace):
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
@@ -204,7 +204,7 @@ class TMXConverter:
         index_lengths = []
         index = 0
         object_classes = self._object_classes()
-        for layer in self._objects:
+        for layer in self._objects_layers_objects:
             layer_index_lengths = []
             for object_class in object_classes:
                 length = len(layer.objects()[object_class]) if object_class in layer.objects() else 0
@@ -280,7 +280,7 @@ class TMXConverter:
         width_in_pixels, height_in_pixels = self._tmx.dimensions_in_pixels()
         width_in_tiles, height_in_tiles = self._tmx.dimensions_in_tiles()
         tile_width, tile_height = self._tmx.tile_dimensions()
-        objects = self._objects
+        objects = self._objects_layers_objects
 
         object_classes = self._object_classes_enum(namespace)
         if len(object_classes) == 0:
