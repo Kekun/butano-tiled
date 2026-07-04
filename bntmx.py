@@ -71,6 +71,35 @@ def write_to_file(filename: str, text: str):
     f.write(text)
     f.close()
 
+def lines(l: list, tail: str) -> str:
+    """
+    Return a string with a line for each element.
+
+    :param l: the list of the elements
+    :returns: a string with a line for each element
+    """
+
+    if not l:
+        return ''
+
+    return (tail + '\n').join(map(str, l)) + tail
+
+def indent(s: str, indentation: str, depth: int) -> str:
+    """
+    Return the indented multiline string
+
+    Empty lines are left unindented.
+
+    :param s: the string to indent
+    :param indentation: the characters to use for an indentation level
+    :param depth: the depth of the indentation
+    :returns: the indented multiline string
+    """
+
+    line_indentation = indentation * depth
+
+    return '\n'.join(map(lambda line: line_indentation + line if line != '' else '', s.splitlines()))
+
 def inline_c_array(l: list) -> str:
     """
     Return the inline C or C++ literal array or struct for the elements in the list.
@@ -91,11 +120,7 @@ def multiline_c_array(l: list, indentation: str, depth: int) -> str:
     :returns: the multiline array literal
     """
 
-    outer_indentation = indentation * depth
-    inner_indentation = indentation * (depth + 1)
-    splitter = ",\n" + inner_indentation
-
-    return "{\n" + inner_indentation + splitter.join(map(str, l)) + "\n" + outer_indentation + "}"
+    return '{\n' + indent(lines(l, ','), indentation, depth + 1) + '\n' + (indentation * depth) + '}'
 
 def bg_size(size: int):
     """
