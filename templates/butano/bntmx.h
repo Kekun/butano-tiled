@@ -3,8 +3,8 @@
  * zlib License, see LICENSE file.
  */
 
-#ifndef BNTMX_MAP_H
-#define BNTMX_MAP_H
+#ifndef BNTMX_H
+#define BNTMX_H
 
 #include <bn_affine_bg_item.h>
 #include <bn_fixed_point.h>
