@@ -3,7 +3,7 @@
 
 #include "bntmx.h"
 
-{object_classes_definition}
+{objects_classes_definition}
 {object_ids_definition}
 {tile_ids_definition}
 #define bntmx_maps_{map_name}_height_in_pixels() ({height_in_pixels})

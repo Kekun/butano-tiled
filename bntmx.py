@@ -23,12 +23,12 @@ _templates = {
         'graphics': read_template('butano', 'graphics.h'),
         'header_template': read_template('butano', 'header_template.h'),
         'map_object_template': read_template('butano', 'map_object_template.h'),
-        'object_classes_definition_empty': read_template('butano', 'object_classes_definition_empty.h'),
-        'object_classes_definition_template': read_template('butano', 'object_classes_definition_template.h'),
         'object_dummy': read_template('butano', 'object_dummy.h'),
         'object_getter': read_template('butano', 'object_getter.h'),
         'object_ids_definition_empty': read_template('butano', 'object_ids_definition_empty.h'),
         'object_ids_definition_template': read_template('butano', 'object_ids_definition_template.h'),
+        'objects_classes_definition_empty': read_template('butano', 'objects_classes_definition_empty.h'),
+        'objects_classes_definition_template': read_template('butano', 'objects_classes_definition_template.h'),
         'objects_definition_empty': read_template('butano', 'objects_definition_empty.h'),
         'objects_definition_template': read_template('butano', 'objects_definition_template.h'),
         'objects_dummy': read_template('butano', 'objects_dummy.h'),
@@ -44,12 +44,12 @@ _templates = {
     'c': {
         'header_template': read_template('c', 'header_template.h'),
         'map_object_template': read_template('c', 'map_object.h'),
-        'object_classes_definition_empty': read_template('c', 'object_classes_definition_empty.h'),
-        'object_classes_definition_template': read_template('c', 'object_classes_definition_template.h'),
         'object_dummy': read_template('c', 'object_dummy.h'),
         'object_getter': read_template('c', 'object_getter.h'),
         'object_ids_definition_empty': read_template('c', 'object_ids_definition_empty.h'),
         'object_ids_definition_template': read_template('c', 'object_ids_definition_template.h'),
+        'objects_classes_definition_empty': read_template('c', 'objects_classes_definition_empty.h'),
+        'objects_classes_definition_template': read_template('c', 'objects_classes_definition_template.h'),
         'objects_definition_empty': read_template('c', 'objects_definition_empty.h'),
         'objects_definition_template': read_template('c', 'objects_definition_template.h'),
         'objects_dummy': read_template('c', 'objects_dummy.h'),
@@ -147,7 +147,7 @@ class TMXConverter:
         self._assign_id_and_layer_to_objects()
 
     def _assign_id_and_layer_to_objects(self):
-        object_classes = self._object_classes()
+        objects_classes = self._objects_classes()
         id = 0
 
         # Layers are already sorted, let's first sort by layers
@@ -155,7 +155,7 @@ class TMXConverter:
             objects = layer_map_objects.objects()
 
             # Then sort by classes
-            for object_class in object_classes:
+            for object_class in objects_classes:
                 if object_class not in objects:
                     continue
 
@@ -165,16 +165,16 @@ class TMXConverter:
                     object.map_id = id
                     id += 1
 
-    def _object_classes(self):
+    def _objects_classes(self):
         # Return the sorted set of map object class names in the whole map, including the "" class
         # If there are no objects layers an empty list is returned, there is not even the "" class.
 
         return sorted(set([map_object_class for layer_map_objects in self._objects_layers_objects for map_object_class in layer_map_objects.objects().keys()]))
 
-    def _object_classes_enum(self, namespace):
+    def _objects_classes_enum(self, namespace):
         # Return the list of enumeration definitions for the map object class names in the whole map, excluding the "" class
 
-        return list(map(lambda i_and_object_class: namespace + mangle(i_and_object_class[1]).upper() + "=" + str(i_and_object_class[0]), enumerate(self._object_classes())))[1:]
+        return list(map(lambda i_and_object_class: namespace + mangle(i_and_object_class[1]).upper() + "=" + str(i_and_object_class[0]), enumerate(self._objects_classes())))[1:]
 
     def _objects(self):
         # Return the list of map objects in the whole map
@@ -203,10 +203,10 @@ class TMXConverter:
 
         index_lengths = []
         index = 0
-        object_classes = self._object_classes()
+        objects_classes = self._objects_classes()
         for layer in self._objects_layers_objects:
             layer_index_lengths = []
-            for object_class in object_classes:
+            for object_class in objects_classes:
                 length = len(layer.objects()[object_class]) if object_class in layer.objects() else 0
                 layer_index_lengths.append((index, length))
                 index = index + length
@@ -282,12 +282,12 @@ class TMXConverter:
         tile_width, tile_height = self._tmx.tile_dimensions()
         objects = self._objects_layers_objects
 
-        object_classes = self._object_classes_enum(namespace)
-        if len(object_classes) == 0:
-            object_classes_definition = template['object_classes_definition_empty']
+        objects_classes = self._objects_classes_enum(namespace)
+        if len(objects_classes) == 0:
+            objects_classes_definition = template['objects_classes_definition_empty']
         else:
-            object_classes_literal = multiline_c_array(object_classes, indentation, indentation_depth)
-            object_classes_definition = template['object_classes_definition_template'].format(map_name=self._name, object_classes=object_classes_literal)
+            objects_classes_literal = multiline_c_array(objects_classes, indentation, indentation_depth)
+            objects_classes_definition = template['objects_classes_definition_template'].format(map_name=self._name, objects_classes=objects_classes_literal)
 
         object_ids = self._object_ids_enum(namespace)
         if len(object_ids) == 0:
@@ -311,7 +311,7 @@ class TMXConverter:
             height_in_pixels=height_in_pixels,
             height_in_tiles=height_in_tiles,
             map_name=self._name,
-            object_classes_definition=object_classes_definition,
+            objects_classes_definition=objects_classes_definition,
             object_ids_definition=object_ids_definition,
             objects_count=len(objects),
             objects_layers_count=objects_layers_count,
@@ -342,7 +342,7 @@ class TMXConverter:
         tiles_layers_count = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
         tiles_layers_tiles_count = width_in_tiles * height_in_tiles
 
-        objects_classes_count = len(self._object_classes())
+        objects_classes_count = len(self._objects_classes())
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), indentation, indentation_depth + 1), self._object_spans()), indentation, indentation_depth)
         objects = self._objects()
         objects_count = len(objects)

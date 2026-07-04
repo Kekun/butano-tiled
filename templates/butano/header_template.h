@@ -12,7 +12,7 @@ class {map_name} : public bntmx::map
 {{
 
 public:
-{object_classes_definition}
+{objects_classes_definition}
 {object_ids_definition}
 {tile_ids_definition}
     constexpr {map_name}() {{}}
