@@ -354,8 +354,6 @@ class TMXConverter:
             indentation_depth = 0
             namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
 
-        header_filename = "bntmx_maps_" + self._name + ".h"
-
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), template['indentation'], indentation_depth + 1), self._objects_spans()), template['indentation'], indentation_depth)
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
         objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), template['indentation'], indentation_depth)
@@ -391,7 +389,6 @@ class TMXConverter:
             tiles_getter = template['tiles_getter_template'].format(map=self)
 
         return template['source_template'].format(
-            header_filename=os.path.basename(header_filename),
             map=self,
             object_getter=object_getter,
             objects_definition=objects_definition,

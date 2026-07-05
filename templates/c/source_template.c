@@ -1,4 +1,4 @@
-#include "{header_filename}"
+#include "bntmx_maps_{map._name}.h"
 
 #include <assert.h>
 
