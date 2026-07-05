@@ -159,6 +159,7 @@ class TMXConverter:
         self._tmx = TMX(tmx_filename)
         self._basename = os.path.splitext(os.path.basename(tmx_filename))[0]
         self._name = mangle(self._basename)
+        self._name_upper = self._name.upper()
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
         self._descriptor = json.load(descriptor)
         # Add empty lists so we don't ave to check their existence every time.
@@ -311,8 +312,6 @@ class TMXConverter:
             indentation_depth = 0
             namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
 
-        guard = "BNTMX_MAPS_" + self._name.upper() + "_H"
-
         objects_classes = self._objects_classes_enum(namespace)
         if len(objects_classes) == 0:
             objects_classes_definition = template['objects_classes_definition_empty']
@@ -337,7 +336,6 @@ class TMXConverter:
         return template['header_template'].format(
             graphics=graphics,
             graphics_include=graphics_include,
-            guard=guard,
             map=self,
             objects_classes_definition=objects_classes_definition,
             object_ids_definition=object_ids_definition,

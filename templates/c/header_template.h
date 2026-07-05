@@ -1,5 +1,5 @@
-#ifndef {guard}
-#define {guard}
+#ifndef BNTMX_MAPS_{map._name_upper}_H
+#define BNTMX_MAPS_{map._name_upper}_H
 
 #include "bntmx.h"
 
