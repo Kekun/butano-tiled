@@ -1,1 +1,1 @@
-typedef enum {objects_classes} bntmx_maps_{map_name}_object_class;
+typedef enum {objects_classes} bntmx_maps_{map._name}_object_class;

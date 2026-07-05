@@ -1,1 +1,1 @@
-(bntmx_span) {{_tiles[tiles_layer_index], {tiles_layers_tiles_count}}}
+(bntmx_span) {{_tiles[tiles_layer_index], {map._tiles_layers_tiles_count}}}
