@@ -1,0 +1,1 @@
+bn::regular_bg_tiles_item(bn::span<const bn::tile>({name}_bntmx_gfxTiles, {tiles_count}), {bpp_mode}, {tiles_compression})

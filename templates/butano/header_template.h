@@ -1,12 +1,13 @@
 #ifndef BNTMX_MAPS_{map._name_upper}_H
 #define BNTMX_MAPS_{map._name_upper}_H
 
-#include "bntmx.h"
+{includes}
 
-{graphics_include}
+{regular_bg_grit_literal}
 
 namespace bntmx::maps
 {{
+{regular_bg_literal}
 
 class {map._name} : public bntmx::map
 {{

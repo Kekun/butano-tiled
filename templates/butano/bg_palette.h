@@ -1,0 +1,1 @@
+bn::bg_palette_item(bn::span<const bn::color>({name}_bntmx_gfxPal, {colors_count}), {bpp_mode}, {palette_compression})

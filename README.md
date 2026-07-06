@@ -27,7 +27,7 @@ add `@$(PYTHON) -B bntmx.py --target=butano --build=$(BUILD) $(MAPS)` to
 If you already have a Python external tool, add this to it:
 ```python
 import bntmx
-bntmx.process("butano", ["maps"], "build")
+bntmx.process("butano", "grit", ["maps"], "build")
 ```
 
 The Butano target requires Butano 15.6.0 or greater.
@@ -39,8 +39,7 @@ Given a map named *world*, you should have the following files:
 - `maps/world.tmx`
 
 The script will generate the following files:
-- `build/graphics/world.bmp`
-- `build/graphics/world.json`
+- `build/world.bntmx.bmp`
 - `build/include/bntmx_maps_world.h`
 - `build/src/bntmx_maps_world.cpp`
 
@@ -111,8 +110,8 @@ and height are multiples of 256 and that can contain it.
 These images are compiled into a single image and converted into a single
 `bn::regular_bg_item` containing them all and named like your map.
 
-You can access the graphics via `bntmx::map::graphics()` or like any other
-bundled `bn::regular_bg_item` asset.
+You can access the graphics via `bntmx::map::graphics()` or as the bundled
+`bntmx::maps::world_regular_bg` asset.
 
 ## Objects
 

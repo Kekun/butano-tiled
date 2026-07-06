@@ -1,5 +1,5 @@
 all:
-	python -B ../../bntmx.py --target=c --build=build ../../maps
+	python -B ../../bntmx.py --target=c --grit=grit --build=build ../../maps
 	gcc -Ibuild/include main.c build/src/* -o build/example
 
 clean:

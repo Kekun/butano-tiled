@@ -1,8 +1,10 @@
 #ifndef BNTMX_MAPS_{map._name_upper}_H
 #define BNTMX_MAPS_{map._name_upper}_H
 
-#include "bntmx.h"
+{includes}
 
+{regular_bg_grit_literal}
+{regular_bg_literal}
 {objects_classes_definition}
 {object_ids_definition}
 {tile_ids_definition}

@@ -30,6 +30,7 @@
 TARGET      :=  $(notdir $(CURDIR))
 BUILD       :=  build
 LIBBUTANO   :=  ../../modules/butano/butano
+BNTMX       :=  ../..
 PYTHON      :=  python
 SOURCES     :=  src $(BUILD)/src
 INCLUDES    :=  include $(BUILD)/include
@@ -48,7 +49,7 @@ DEFAULTLIBS :=
 STACKTRACE  :=  true
 USERBUILD   :=
 MAPS        :=  maps
-EXTTOOL     :=  @$(PYTHON) -B ../../bntmx.py --target=butano --build=$(BUILD) ../../$(MAPS)
+EXTTOOL     :=  @$(PYTHON) -B $(BNTMX)/bntmx.py  --grit="grit" --target=butano --build=$(BUILD) $(BNTMX)/$(MAPS)
 
 #---------------------------------------------------------------------------------------------------------------------
 # Export absolute butano path:
@@ -58,6 +59,15 @@ ifndef LIBBUTANOABS
 endif
 
 #---------------------------------------------------------------------------------------------------------------------
+# Export absolute butano-tiled path:
+#---------------------------------------------------------------------------------------------------------------------
+ifndef BNTMXABS
+	export BNTMXABS	:=	$(realpath $(BNTMX))
+endif
+
+#---------------------------------------------------------------------------------------------------------------------
 # Include main makefile:
 #---------------------------------------------------------------------------------------------------------------------
 include $(LIBBUTANOABS)/butano.mak
+
+include $(BNTMXABS)/bntmx.mak
