@@ -1,5 +1,6 @@
 *.elf
 *.gba
 *.pyc
+*.sav
 /__pycache__/
 /examples/*/build/
