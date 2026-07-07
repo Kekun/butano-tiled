@@ -775,14 +775,11 @@ class MapItem:
 
 def process(target: Target, grit, maps_dirs, build_dir):
     bntmx_dir = os.path.dirname(os.path.realpath(__file__))
-    build_graphics_dir = os.path.join(build_dir, "graphics")
     build_include_dir = os.path.join(build_dir, "include")
     build_src_dir = os.path.join(build_dir, "src")
 
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
-    if not os.path.exists(build_graphics_dir):
-        os.makedirs(build_graphics_dir)
     if not os.path.exists(build_include_dir):
         os.makedirs(build_include_dir)
     if not os.path.exists(build_src_dir):
