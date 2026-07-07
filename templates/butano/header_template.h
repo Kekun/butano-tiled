@@ -31,7 +31,7 @@ public:
     constexpr int n_graphics_layers() const {{ return {map._graphics_layers_count}; }}
     constexpr int n_objects_layers() const {{ return {map._objects_layers_count}; }}
     constexpr int n_tiles_layers() const {{ return {map._tiles_layers_count}; }}
-    constexpr std::variant<std::monostate, bn::regular_bg_item, bn::affine_bg_item> graphics() const {{ return {graphics}; }}
+    constexpr bn::optional<bn::regular_bg_item> graphics() const {{ return {graphics}; }}
 
     const bntmx::map_object object(int id) const;
     const bn::span<const bntmx::map_object> objects(int objects_layer_index) const;

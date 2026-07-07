@@ -6,13 +6,12 @@
 #ifndef BNTMX_H
 #define BNTMX_H
 
-#include <bn_affine_bg_item.h>
 #include <bn_fixed_point.h>
+#include <bn_optional.h>
 #include <bn_point.h>
+#include <bn_regular_bg_item.h>
 #include <bn_size.h>
 #include <bn_span.h>
-#include <bn_regular_bg_item.h>
-#include <variant>
 
 namespace bntmx
 {
@@ -94,7 +93,7 @@ public:
     /**
      * @brief Returns the graphics layers of the map.
      */
-    virtual constexpr  std::variant<std::monostate, bn::regular_bg_item, bn::affine_bg_item> graphics() const = 0;
+    virtual constexpr  bn::optional<bn::regular_bg_item> graphics() const = 0;
 
     /**
      * @brief Returns the object with the given ID.

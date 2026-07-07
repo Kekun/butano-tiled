@@ -629,7 +629,7 @@ class MapItem:
         template = _templates[self._target]
         match self._target:
             case Target.butano:
-                graphics = self._name + '_regular_bg' if self._graphics_layers_count > 0 else "std::monostate()"
+                graphics = self._name + '_regular_bg' if self._graphics_layers_count > 0 else "bn::optional<bn::regular_bg_item>()"
                 indentation_depth = 1
                 namespace = ""
             case Target.c:
