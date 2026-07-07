@@ -490,7 +490,7 @@ class MapItem:
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
         descriptor = json.load(descriptor)
 
-        self._graphics_layers = descriptor["graphics"] if "graphics" in descriptor else list()
+        self._regular_bg_layers = descriptor["regular_bg"] if "regular_bg" in descriptor else list()
         self._objects_layers = descriptor["objects"] if "objects" in descriptor else list()
         self._tiles_layers = descriptor["tiles"] if "tiles" in descriptor else list()
 
@@ -508,7 +508,7 @@ class MapItem:
         self._width_in_tiles, self._height_in_tiles = self._tmx.dimensions_in_tiles()
         self._tile_width, self._tile_height = self._tmx.tile_dimensions()
 
-        self._graphics_layers_count = len(self._graphics_layers)
+        self._regular_bg_layers_count = len(self._regular_bg_layers)
         self._objects_layers_count = len(self._objects_layers)
         self._tiles_layers_count = len(self._tiles_layers)
 
@@ -602,15 +602,15 @@ class MapItem:
     def regular_bg_image(self):
         # Convert the TMX into its regular background image.
 
-        if self._graphics_layers_count == 0:
+        if self._regular_bg_layers_count == 0:
             return None
 
         # The size of each individual background
         bg_width, bg_height = self.regular_bg_dimensions()
 
         # Compose the layers into a single background image
-        gfx_im = Image.new("RGBA", (bg_width, bg_height * self._graphics_layers_count), self._tmx.background_color())
-        for i, layer_path in enumerate(self._graphics_layers):
+        gfx_im = Image.new("RGBA", (bg_width, bg_height * self._regular_bg_layers_count), self._tmx.background_color())
+        for i, layer_path in enumerate(self._regular_bg_layers):
             self._tmx.compose(gfx_im, layer_path, 0, bg_height * i)
 
         # Make the image paletted
@@ -629,11 +629,11 @@ class MapItem:
         template = _templates[self._target]
         match self._target:
             case Target.butano:
-                graphics = self._name + '_regular_bg' if self._graphics_layers_count > 0 else "bn::optional<bn::regular_bg_item>()"
+                regular_bg = self._name + '_regular_bg' if self._regular_bg_layers_count > 0 else "bn::optional<bn::regular_bg_item>()"
                 indentation_depth = 1
                 namespace = ""
             case Target.c:
-                graphics = ""
+                regular_bg = ""
                 indentation_depth = 0
                 namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
             case _:
@@ -706,7 +706,7 @@ class MapItem:
             regular_bg_literal = ''
 
         return template['header_template'].format(
-            graphics=graphics,
+            regular_bg=regular_bg,
             includes=includes(foreign_includes, local_includes),
             map=self,
             objects_classes_definition=objects_classes_definition,
@@ -815,7 +815,7 @@ def process(target: Target, grit, maps_dirs, build_dir):
                 if input_mtime < output_mtime:
                     continue
 
-                # Export the image
+                # Export the regular background
                 gfx_im = item.regular_bg_image()
                 if gfx_im is not None:
                     gfx_im.save(bmp_filename, "BMP")

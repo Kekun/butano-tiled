@@ -76,9 +76,9 @@ public:
     virtual constexpr int tile_height() const = 0;
 
     /**
-     * @brief Returns the number of graphics layers of the map.
+     * @brief Returns the number of regular background layers of the map.
      */
-    virtual constexpr int n_graphics_layers() const = 0;
+    virtual constexpr int n_regular_bg_layers() const = 0;
 
     /**
      * @brief Returns the number of objects layers of the map.
@@ -91,9 +91,9 @@ public:
     virtual constexpr int n_tiles_layers() const = 0;
 
     /**
-     * @brief Returns the graphics layers of the map.
+     * @brief Returns the regular background layers of the map.
      */
-    virtual constexpr  bn::optional<bn::regular_bg_item> graphics() const = 0;
+    virtual constexpr  bn::optional<bn::regular_bg_item> regular_bg() const = 0;
 
     /**
      * @brief Returns the object with the given ID.

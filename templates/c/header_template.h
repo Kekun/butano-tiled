@@ -13,7 +13,7 @@
 #define bntmx_maps_{map._name}_height_in_tiles() ({map._height_in_tiles})
 #define bntmx_maps_{map._name}_tile_width() ({map._tile_width})
 #define bntmx_maps_{map._name}_tile_height() ({map._tile_height})
-#define bntmx_maps_{map._name}_n_graphics_layers() ({map._graphics_layers_count})
+#define bntmx_maps_{map._name}_n_regular_bg_layers() ({map._regular_bg_layers_count})
 #define bntmx_maps_{map._name}_n_objects_layers() ({map._objects_layers_count})
 #define bntmx_maps_{map._name}_n_tiles_layers() ({map._tiles_layers_count})
 

@@ -28,10 +28,10 @@ public:
     constexpr int height_in_tiles() const {{ return {map._height_in_tiles}; }}
     constexpr int tile_width() const {{ return {map._tile_width}; }}
     constexpr int tile_height() const {{ return {map._tile_height}; }}
-    constexpr int n_graphics_layers() const {{ return {map._graphics_layers_count}; }}
+    constexpr int n_regular_bg_layers() const {{ return {map._regular_bg_layers_count}; }}
     constexpr int n_objects_layers() const {{ return {map._objects_layers_count}; }}
     constexpr int n_tiles_layers() const {{ return {map._tiles_layers_count}; }}
-    constexpr bn::optional<bn::regular_bg_item> graphics() const {{ return {graphics}; }}
+    constexpr bn::optional<bn::regular_bg_item> regular_bg() const {{ return {regular_bg}; }}
 
     const bntmx::map_object object(int id) const;
     const bn::span<const bntmx::map_object> objects(int objects_layer_index) const;

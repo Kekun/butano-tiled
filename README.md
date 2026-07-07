@@ -56,7 +56,7 @@ Maps are *.tmx files you can build with [Tiled](https://www.mapeditor.org/).
 
 Each map must have a *.json descriptor whose root object expects the following
 fields:
-- `"graphics"`: the paths to the layers to draw as a `bn::regular_bg_item`
+- `"regular_bg"`: the paths to the layers to draw as a `bn::regular_bg_item`
 - `"objects"`: the paths to the layers whose objects should be exported
 - `"tiles"`: the paths to the layers whose tiles should be exported
 
@@ -69,7 +69,7 @@ The layers they will be exported and indexed in the order they are listed.
 
 Layers also be an array of layers that will be merged together to give you more
 freedom in your file:
-- graphics layers from an array will be drawn one onto the other to form a
+- regular_bg layers from an array will be drawn one onto the other to form a
   single layer
 - objects layers from an array will have all their objects exported into a
   single layer
@@ -79,7 +79,7 @@ freedom in your file:
 Here is an example of what a *.json decriptor could look like:
 ```json
 {
-    "graphics": [
+    "regular_bg": [
         "canopy",
         [
             "floor",
@@ -102,14 +102,14 @@ Here is an example of what a *.json decriptor could look like:
 }
 ```
 
-## Graphics
+## Regular Backgrounds
 
-Each graphics layer is drawn centered on the smallest possible image whose width
+Each regular_bg layer is drawn centered on the smallest possible image whose width
 and height are multiples of 256 and that can contain it.
 These images are compiled into a single image and converted into a single
 `bn::regular_bg_item` containing them all and named like your map.
 
-You can access the graphics via `bntmx::map::graphics()` or as the bundled
+You can access the graphics via `bntmx::map::regular_bg()` or as the bundled
 `bntmx::maps::world_regular_bg` asset.
 
 ## Objects
