@@ -110,8 +110,8 @@ and height are multiples of 256 and that can contain it.
 These images are compiled into a single image and converted into a single
 `bn::regular_bg_item` containing them all and named like your map.
 
-You can access the graphics via `bntmx::map::regular_bg_item()` or like any
-other bundled `bn::regular_bg_item` asset.
+You can access the graphics via `bntmx::map::graphics()` or like any other
+bundled `bn::regular_bg_item` asset.
 
 ## Objects
 
