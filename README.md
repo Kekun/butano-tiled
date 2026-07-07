@@ -19,6 +19,7 @@ In your makefile:
 - add the `$(BUILD)/src` directory to `SOURCES`
 - add the `$(BUILD)/include` directory to `INCLUDES`
 - add the `$(BUILD)/graphics` directory to `GRAPHICS`
+- include the `bntmx.mak` file after including Butano's `butano.mak`
 
 Then, if you don't have an external tool defined in `EXTTOOL` in your makefile,
 add `@$(PYTHON) -B bntmx.py --target=butano --build=$(BUILD) $(MAPS)` to
