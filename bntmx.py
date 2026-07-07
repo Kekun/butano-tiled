@@ -1360,18 +1360,15 @@ class MapItem:
 
 def process(target: Target, grit, maps_dirs, build_dir):
     bntmx_dir = os.path.dirname(os.path.realpath(__file__))
-    build_include_dir = os.path.join(build_dir, "include")
     build_src_dir = os.path.join(build_dir, "src")
 
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
-    if not os.path.exists(build_include_dir):
-        os.makedirs(build_include_dir)
     if not os.path.exists(build_src_dir):
         os.makedirs(build_src_dir)
 
     # Export the global header
-    include_filename = os.path.join(build_dir, "include", "bntmx.h")
+    include_filename = os.path.join(build_dir, "bntmx.h")
     include = read_template(target, "bntmx.h")
     write_to_file(include_filename, include)
 
@@ -1386,7 +1383,7 @@ def process(target: Target, grit, maps_dirs, build_dir):
                 tmx_json_filename = os.path.join(maps_dir, map_basename + ".json")
                 regular_bg_bmp_filename = os.path.join(build_dir, map_name + "_regular_bg.bntmx.bmp")
                 affine_bg_bmp_filename = os.path.join(build_dir, map_name + "_affine_bg.bntmx.bmp")
-                header_filename = os.path.join(build_dir, "include", "bntmx_map_items_" + map_name + ".h")
+                header_filename = os.path.join(build_dir, "bntmx_map_items_" + map_name + ".h")
                 match target:
                     case Target.butano:
                         source_filename = os.path.join(build_dir, "src", "bntmx_map_items_" + map_name + ".cpp")

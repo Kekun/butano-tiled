@@ -17,7 +17,6 @@ In your makefile create:
 
 In your makefile:
 - add the `$(BUILD)/src` directory to `SOURCES`
-- add the `$(BUILD)/include` directory to `INCLUDES`
 - include the `bntmx.mak` file after including Butano's `butano.mak`
 
 Then, if you don't have an external tool defined in `EXTTOOL` in your makefile,
@@ -39,7 +38,7 @@ Given a map named *world*, you should have the following files:
 
 The script will generate the following files:
 - `build/world.bntmx.bmp`
-- `build/include/bntmx_map_items_world.h`
+- `build/bntmx_map_items_world.h`
 - `build/src/bntmx_map_items_world.cpp`
 
 Each map is converted into an object of type `bntmx::map_item` listed in the
