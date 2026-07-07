@@ -151,7 +151,7 @@ def mangle(name: str) -> str:
     match = re.match('^[0-9_]*([a-z0-9_]+?)_*$', re.sub('[^a-z0-9]+', '_', name.lower()))
     return "" if match is None else match.group(1)
 
-class TMXConverter:
+class MapItem:
     def __init__(self, target, tmx_filename):
         assert target in _targets
 
@@ -422,9 +422,9 @@ def process(target, maps_dirs, build_dir):
         for map_file in os.listdir(maps_dir):
             if map_file.endswith('.tmx') and os.path.isfile(os.path.join(maps_dir, map_file)):
                 tmx_filename = os.path.join(maps_dir, map_file)
-                converter = TMXConverter(target, tmx_filename)
-                map_basename = converter.basename()
-                map_name = converter.name()
+                item = MapItem(target, tmx_filename)
+                map_basename = item.basename()
+                map_name = item.name()
 
                 tmx_json_filename = os.path.join(maps_dir, map_basename + ".json")
                 bmp_filename = os.path.join(build_dir, "graphics", map_name + ".bmp")
@@ -436,24 +436,24 @@ def process(target, maps_dirs, build_dir):
                     source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".c")
 
                 # Don't rebuild unchanged files
-                input_mtime = max(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [tmx_filename, tmx_json_filename] + converter.dependencies()))
+                input_mtime = max(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [tmx_filename, tmx_json_filename] + item.dependencies()))
                 output_mtime = min(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [bmp_filename, bmp_json_filename, header_filename, source_filename]))
                 if input_mtime < output_mtime:
                     continue
 
                 # Export the image
-                gfx_im = converter.regular_bg_image()
+                gfx_im = item.regular_bg_image()
                 if gfx_im is not None:
                     gfx_im.save(bmp_filename, "BMP")
                     # Export the graphics descriptor
                     if target == "butano":
-                        write_to_file(bmp_json_filename, converter.regular_bg_descriptor())
+                        write_to_file(bmp_json_filename, item.regular_bg_descriptor())
 
                 # Export the C++ header
-                write_to_file(header_filename, converter.butano_header())
+                write_to_file(header_filename, item.butano_header())
 
                 # Export the C++ source
-                write_to_file(source_filename, converter.butano_source())
+                write_to_file(source_filename, item.butano_source())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compile Tiled maps into code and data usable by the game engine.')
