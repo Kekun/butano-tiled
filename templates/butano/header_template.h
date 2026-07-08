@@ -5,8 +5,7 @@
 
 {regular_bg_grit_literal}
 
-namespace bntmx::map_items
-{{
+namespace bntmx::map_items {{
 {regular_bg_literal}
 
 class {map._name} : public bntmx::map_item
