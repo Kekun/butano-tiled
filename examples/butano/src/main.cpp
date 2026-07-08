@@ -15,21 +15,19 @@ int main()
     bn::core::init();
 
     bn::camera_ptr camera = bn::camera_ptr::create(0, 0);
-    bntmx::map_item* map = new bntmx::map_items::wonderland();
 
     bn::regular_bg_ptr background = bn::regular_bg_items::wonderland_background.create_bg(0, 0);
-    bn::regular_bg_ptr layer = map->regular_bg()->create_bg(0, 0, 0);
+    bn::regular_bg_ptr foreground = bntmx::map_items::wonderland_regular_bg.create_bg(0, 0, 0);
+    const bntmx::orthogonal_map_item& layout = bntmx::map_items::wonderland_orthogonal_map;
 
     background.set_camera(camera);
-    layer.set_camera(camera);
+    foreground.set_camera(camera);
 
-    camera.set_x(-(map->width_in_pixels() - bn::display::width()) / 2);
-    camera.set_y(-(map->height_in_pixels() - bn::display::height()) / 2);
+    camera.set_x(-(layout.width() - bn::display::width()) / 2);
+    camera.set_y(-(layout.height() - bn::display::height()) / 2);
 
     while(true)
     {
         bn::core::update();
     }
-
-    delete map;
 }

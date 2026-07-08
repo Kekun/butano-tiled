@@ -1,1 +1,0 @@
-(bntmx_span) {NULL, 0}

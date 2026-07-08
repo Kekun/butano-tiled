@@ -1,1 +1,1 @@
-    enum tile_id {tile_ids};
+enum tile_id {tile_ids};

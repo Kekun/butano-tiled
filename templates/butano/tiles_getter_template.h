@@ -1,1 +1,1 @@
-bn::span(_tiles[tiles_layer_index], {map._tiles_layers_tiles_count})
+bn::span(_tiles[tiles_layer_index], {map_tiles_item._layers_tiles_count})

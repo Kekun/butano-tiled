@@ -1,0 +1,1 @@
+extern const bntmx_map_tile _bntmx_map_items_{map_tiles_item._name}_map_tilesTiles[{map_tiles_item._tiles_count}];

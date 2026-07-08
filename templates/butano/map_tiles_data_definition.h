@@ -1,0 +1,1 @@
+extern const bn::array<bntmx::map_tile, {map_tiles_item._tiles_count}> _bntmx_map_items_{map_tiles_item._name}_map_tilesTiles = {tiles};

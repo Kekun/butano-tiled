@@ -54,11 +54,6 @@ _templates = {
         'regular_bg_map': read_template(Target.butano, 'regular_bg_map.h'),
         'regular_bg_tiles': read_template(Target.butano, 'regular_bg_tiles.h'),
         'source_template': read_template(Target.butano, 'source_template.cpp'),
-        'tile_ids_definition_empty': read_template(Target.butano, 'tile_ids_definition_empty.h'),
-        'tile_ids_definition_template': read_template(Target.butano, 'tile_ids_definition_template.h'),
-        'tiles_definition_template': read_template(Target.butano, 'tiles_definition_template.h'),
-        'tiles_dummy': read_template(Target.butano, 'tiles_dummy.h'),
-        'tiles_getter_template': read_template(Target.butano, 'tiles_getter_template.h'),
     },
     Target.c: {
         'header_template': read_template(Target.c, 'header_template.h'),
@@ -76,13 +71,11 @@ _templates = {
         'objects_getter_classless': read_template(Target.c, 'objects_getter.h'),
         'objects_getter_with_class': read_template(Target.c, 'objects_getter.h'),
         'source_template': read_template(Target.c, 'source_template.c'),
-        'tile_ids_definition_empty': read_template(Target.c, 'tile_ids_definition_empty.h'),
-        'tile_ids_definition_template': read_template(Target.c, 'tile_ids_definition_template.h'),
-        'tiles_definition_template': read_template(Target.c, 'tiles_definition_template.h'),
-        'tiles_dummy': read_template(Target.c, 'tiles_dummy.h'),
-        'tiles_getter_template': read_template(Target.c, 'tiles_getter_template.h'),
     },
 }
+
+def flatten(list_list: list):
+    return [element for sublist in list_list for element in sublist]
 
 def write_to_file(filename: str, text: str):
     f = open(filename, "w")
@@ -480,6 +473,111 @@ class RegularBgItem:
         except subprocess.CalledProcessError as e:
             raise ValueError(grit + ' call failed (return code ' + str(e.returncode) + '): ' + str(e.output))
 
+class OrthogonalMapItem:
+    def __init__(self, target: Target, tmx: TMX, name: str, info: dict):
+        self._templates = {
+            'indentation': '    ',
+            'map_tiles_data_declaration': read_template(target, 'map_tiles_data_declaration.h'),
+            'map_tiles_data_definition': read_template(target, 'map_tiles_data_definition.h'),
+            'orthogonal_map_item_declaration': read_template(target, 'orthogonal_map_item_declaration.h'),
+            'tile_ids_definition_template': read_template(target, 'tile_ids_definition_template.h'),
+            'tiles_getter_template': read_template(target, 'tiles_getter_template.h'),
+        }
+
+        match target:
+            case Target.butano:
+                self._templates['namespace'] = ''
+            case Target.c:
+                self._templates['namespace'] = 'BNTMX_MAP_ITEMS_' + name.upper() + '_'
+            case _:
+                raise ValueError('Unknown target: ' + str(target))
+
+        self._target = target
+        self._name = name
+        self._tmx = tmx
+        self._info = info
+
+        self._layers = info['layers'] if 'layers' in info else list()
+        self._layers_count = len(self._layers)
+        if self._layers_count <= 0:
+            raise ValueError('Invalid tile layers count: ' + str(self._layers_count))
+
+        self._width, self._height = self._tmx.dimensions_in_tiles()
+        if self._width <= 0:
+            raise ValueError('Invalid map width: ' + str(self._width))
+        if self._height <= 0:
+            raise ValueError('Invalid map height: ' + str(self._height))
+
+        self._tile_width, self._tile_height = self._tmx.tile_dimensions()
+        if self._tile_width <= 0:
+            raise ValueError('Invalid tile width: ' + str(self._tile_width))
+        if self._tile_height <= 0:
+            raise ValueError('Invalid tile height: ' + str(self._tile_height))
+
+        self._tiles_count = self._width * self._height * self._layers_count
+        self._layers_tiles_count = self._width * self._height
+
+    def _tile_ids_enum(self):
+        # Return the list of enumeration definitions for the map tile ids in the whole map
+
+        tile_ids = []
+        for first, last, tsx in self._tmx.tilesets():
+            enum_base = mangle(os.path.splitext(os.path.basename(tsx.filename()))[0]).upper()
+            tile_ids.append(self._templates['namespace'] + enum_base + '=' + str(first))
+            tile_ids.append(self._templates['namespace'] + enum_base + '_LAST=' + str(last))
+        return tile_ids
+
+    def process(self):
+        header_foreign_includes = set()
+        header_local_includes = set()
+        source_foreign_includes = set()
+        source_local_includes = set()
+
+        header_local_includes.add('bntmx.h')
+        match self._target:
+            case Target.butano:
+                header_foreign_includes.add('bn_array.h')
+                source_foreign_includes.add('bn_array.h')
+
+        tile_ids = self._tile_ids_enum()
+        if len(tile_ids) == 0:
+            tile_ids_definition = None
+        else:
+            tile_ids_literal = multiline_c_array(tile_ids, self._templates['indentation'], 0)
+            tile_ids_definition = self._templates['tile_ids_definition_template'].format(map_tiles_item=self, tile_ids=tile_ids_literal)
+
+        # Get a list of C or C++ array row literals for the given list of tiles, matching lines and columns of the map for readability.
+        tiles_to_array_row_literals = lambda tiles: [', '.join(tiles[i:i + self._width]) for i in range(0, len(tiles), self._width)]
+        # Get a list of C or C++ array row literals for the given tiles layer path, matching lines and columns of the map for readability.
+        tiles_layer_path_to_array_row_literals = lambda layer_path: tiles_to_array_row_literals(self._tmx.tiles(layer_path))
+        # Literal array of tiles, per tiles layer either nested or flattened.
+        tiles_nested_literal = multiline_c_array(map(lambda layer_path: multiline_c_array(tiles_layer_path_to_array_row_literals(layer_path), self._templates['indentation'], 0), self._layers), self._templates['indentation'], 0)
+        tiles_flat_literal = multiline_c_array(flatten(map(tiles_layer_path_to_array_row_literals, self._layers)), self._templates['indentation'], 0)
+
+        # Data declarations
+        tiles_literal = self._templates['orthogonal_map_item_declaration'].format(map_tiles_item=self)
+        tiles_declaration_literal = self._templates['map_tiles_data_declaration'].format(map_tiles_item=self)
+        tiles_definition = self._templates['map_tiles_data_definition'].format(
+            map_tiles_item=self,
+            tiles=tiles_flat_literal)
+        tiles_getter = self._templates['tiles_getter_template'].format(map_tiles_item=self)
+
+        return {
+            'header_foreign_includes': header_foreign_includes,
+            'header_local_includes': header_local_includes,
+            'source_foreign_includes': source_foreign_includes,
+            'source_local_includes': source_local_includes,
+            'data_declarations': [
+                tiles_declaration_literal,
+            ],
+            'item_declarations': [
+                tiles_literal,
+            ],
+            'data_definitions': [
+                tiles_definition,
+            ],
+        }
+
 class MapItem:
     def __init__(self, target: Target, tmx_filename):
         self._target = target
@@ -493,11 +591,10 @@ class MapItem:
         regular_bg = descriptor["regular_bg"] if "regular_bg" in descriptor else dict()
         self._regular_bg_layers = regular_bg["layers"] if "layers" in regular_bg else list()
 
+        self._map_tiles_item = OrthogonalMapItem(target, self._tmx, self._name, descriptor['map_tiles']) if 'map_tiles' in descriptor else None
+
         objects = descriptor["map_objects"] if "map_objects" in descriptor else dict()
         self._objects_layers = objects["layers"] if "layers" in objects else list()
-
-        tiles = descriptor["map_tiles"] if "map_tiles" in descriptor else dict()
-        self._tiles_layers = tiles["layers"] if "layers" in tiles else list()
 
         # The list of MapObjects for the list of object layers
         self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._objects_layers))
@@ -510,16 +607,12 @@ class MapItem:
         self._objects = sorted([map_object for layer_map_objects in self._objects_layers_objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
 
         self._width_in_pixels, self._height_in_pixels = self._tmx.dimensions_in_pixels()
-        self._width_in_tiles, self._height_in_tiles = self._tmx.dimensions_in_tiles()
-        self._tile_width, self._tile_height = self._tmx.tile_dimensions()
 
         self._regular_bg_layers_count = len(self._regular_bg_layers)
         self._objects_layers_count = len(self._objects_layers)
-        self._tiles_layers_count = len(self._tiles_layers)
 
         self._objects_classes_count = len(self._objects_classes())
         self._objects_count = len(self._objects)
-        self._tiles_layers_tiles_count = self._width_in_tiles * self._height_in_tiles
 
         # Regular background info
 
@@ -570,16 +663,6 @@ class MapItem:
         # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
 
         return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._objects if map_object.id is not None]
-
-    def _tile_ids_enum(self, namespace):
-        # Return the list of enumeration definitions for the map tile ids in the whole map
-
-        tile_ids = []
-        for first, last, tsx in self._tmx.tilesets():
-            enum_base = mangle(os.path.splitext(os.path.basename(tsx.filename()))[0]).upper()
-            tile_ids.append(namespace + enum_base + "=" + str(first))
-            tile_ids.append(namespace + enum_base + "_LAST=" + str(last))
-        return tile_ids
 
     def _objects_spans(self):
         # Return a list for each layer of lists of (index,length) pairs for each
@@ -675,13 +758,6 @@ class MapItem:
             object_ids_literal = multiline_c_array(object_ids, template['indentation'], indentation_depth)
             object_ids_definition = template['object_ids_definition_template'].format(map=self, object_ids=object_ids_literal)
 
-        tile_ids = self._tile_ids_enum(namespace)
-        if len(tile_ids) == 0:
-            tile_ids_definition = template['tile_ids_definition_empty']
-        else:
-            tile_ids_literal = multiline_c_array(tile_ids, template['indentation'], indentation_depth)
-            tile_ids_definition = template['tile_ids_definition_template'].format(map=self, tile_ids=tile_ids_literal)
-
         # Regular background
         if self._target == Target.butano and regular_bg_data is not None:
             header_foreign_includes.add('bn_regular_bg_item.h')
@@ -728,6 +804,14 @@ class MapItem:
 
             data_declarations += [regular_bg_grit_literal]
 
+        # Map tiles
+        if self._map_tiles_item is not None:
+            data = self._map_tiles_item.process()
+            header_foreign_includes |= data['header_foreign_includes']
+            header_local_includes |= data['header_local_includes']
+            data_declarations += data['data_declarations']
+            item_declarations += data['item_declarations']
+
         return template['header_template'].format(
             data_declarations='\n\n'.join([d for d in data_declarations if d is not None]),
             includes=includes(header_foreign_includes, header_local_includes),
@@ -735,12 +819,13 @@ class MapItem:
             map=self,
             object_ids_definition=object_ids_definition,
             objects_classes_definition=objects_classes_definition,
-            regular_bg=regular_bg,
-            tile_ids_definition=tile_ids_definition)
+            regular_bg=regular_bg)
 
     def butano_source(self):
         # Convert the TMX into its C++ source.
 
+        source_foreign_includes = set()
+        source_local_includes = set()
         data_definitions = list()
 
         template = _templates[self._target]
@@ -758,13 +843,6 @@ class MapItem:
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
         objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), template['indentation'], indentation_depth)
 
-        # Get the C or C++ array literal for the given list of tiles, matching lines and columns of the map for readability.
-        tiles_to_array_literal = lambda tiles: multiline_c_array([', '.join(tiles[i:i + self._width_in_tiles]) for i in range(0, len(tiles), self._width_in_tiles)], template['indentation'], indentation_depth + 1)
-        # Get the C or C++ array literal of tiles for the given tiles layer path.
-        tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
-        # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
-        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._tiles_layers)), template['indentation'], indentation_depth)
-
         if self._objects_count == 0 or self._objects_classes_count == 0 or self._objects_layers_count == 0:
             object_getter = template['object_dummy']
             objects_definition = template['objects_definition_empty']
@@ -779,24 +857,24 @@ class MapItem:
             objects_getter_classless = template['objects_getter_classless']
             objects_getter_with_class = template['objects_getter_with_class']
 
-        if self._tiles_layers_tiles_count == 0 or self._tiles_layers_count == 0:
-            tiles_definition = ''
-            tiles_getter = template['tiles_dummy']
-        else:
-            tiles_definition = template['tiles_definition_template'].format(
-                map=self,
-                tiles=tiles_literal)
-            tiles_getter = template['tiles_getter_template'].format(map=self)
+        # Map tiles
+        if self._map_tiles_item is not None:
+            data = self._map_tiles_item.process()
+            source_foreign_includes |= data['source_foreign_includes']
+            source_local_includes |= data['source_local_includes']
+            data_definitions += data['data_definitions']
+
+        # FIXME Drop tiles_getter
+        tiles_getter = ''
 
         return template['source_template'].format(
             data_definitions='\n\n'.join([d for d in data_definitions if d is not None]),
+            includes=includes(source_foreign_includes, source_local_includes),
             map=self,
             object_getter=object_getter,
             objects_definition=objects_definition,
             objects_getter_classless=objects_getter_classless,
             objects_getter_with_class=objects_getter_with_class,
-            tiles=tiles_literal,
-            tiles_definition=tiles_definition,
             tiles_getter=tiles_getter)
 
 def process(target: Target, grit, maps_dirs, build_dir):
