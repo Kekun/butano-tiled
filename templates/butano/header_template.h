@@ -3,10 +3,10 @@
 
 {includes}
 
-{regular_bg_grit_literal}
+{data_declarations}
 
 namespace bntmx::map_items {{
-{regular_bg_literal}
+{item_declarations}
 
 class {map._name} : public bntmx::map_item
 {{

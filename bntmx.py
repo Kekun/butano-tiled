@@ -50,7 +50,7 @@ _templates = {
         'objects_dummy': read_template(Target.butano, 'objects_dummy.h'),
         'objects_getter_classless': read_template(Target.butano, 'objects_getter_classless.h'),
         'objects_getter_with_class': read_template(Target.butano, 'objects_getter_with_class.h'),
-        'regular_bg': read_template(Target.butano, 'regular_bg.h'),
+        'regular_bg_item_declaration': read_template(Target.butano, 'regular_bg_item_declaration.h'),
         'regular_bg_map': read_template(Target.butano, 'regular_bg_map.h'),
         'regular_bg_tiles': read_template(Target.butano, 'regular_bg_tiles.h'),
         'source_template': read_template(Target.butano, 'source_template.cpp'),
@@ -621,10 +621,12 @@ class MapItem:
     def butano_header(self, regular_bg_data):
         # Convert the TMX into its C++ header.
 
-        foreign_includes = set()
-        local_includes = set()
+        header_foreign_includes = set()
+        header_local_includes = set()
+        data_declarations = list()
+        item_declarations = list()
 
-        local_includes.add('bntmx.h')
+        header_local_includes.add('bntmx.h')
 
         template = _templates[self._target]
         match self._target:
@@ -662,7 +664,7 @@ class MapItem:
 
         # Regular background
         if self._target == Target.butano and regular_bg_data is not None:
-            foreign_includes.add('bn_regular_bg_item.h')
+            header_foreign_includes.add('bn_regular_bg_item.h')
 
             regular_bg_grit_literal = regular_bg_data['grit_data']
 
@@ -681,7 +683,7 @@ class MapItem:
                     palette_compression=regular_bg_data['palette_compression_label'],
                     name=regular_bg_data['name'])
             else:
-                local_includes.add('bn_bg_palette_items_{palette_item}.h'.format(
+                header_local_includes.add('bn_bg_palette_items_{palette_item}.h'.format(
                     palette_item=regular_bg_data['palette_item']))
 
                 regular_bg_palette_literal = template['bg_palette_item'].format(
@@ -693,30 +695,33 @@ class MapItem:
                 tiles_compression=regular_bg_data['tiles_compression_label'],
                 tiles_count=regular_bg_data['tiles_count'])
 
-            regular_bg_literal = template['regular_bg'].format(
+            regular_bg_item_declaration = template['regular_bg_item_declaration'].format(
                 name=regular_bg_data['name'],
                 regular_bg_map_literal=regular_bg_map_literal,
                 regular_bg_palette_literal=regular_bg_palette_literal,
                 regular_bg_tiles_literal=regular_bg_tiles_literal)
+
+            data_declarations += [regular_bg_grit_literal]
+            item_declarations += [regular_bg_item_declaration]
         elif self._target == Target.c and regular_bg_data is not None:
             regular_bg_grit_literal = regular_bg_data['grit_data']
-            regular_bg_literal = ''
-        else:
-            regular_bg_grit_literal = ''
-            regular_bg_literal = ''
+
+            data_declarations += [regular_bg_grit_literal]
 
         return template['header_template'].format(
-            regular_bg=regular_bg,
-            includes=includes(foreign_includes, local_includes),
+            data_declarations='\n\n'.join([d for d in data_declarations if d is not None]),
+            includes=includes(header_foreign_includes, header_local_includes),
+            item_declarations=indent('\n\n'.join([d for d in item_declarations if d is not None]), template['indentation'], indentation_depth),
             map=self,
-            objects_classes_definition=objects_classes_definition,
             object_ids_definition=object_ids_definition,
-            regular_bg_grit_literal=regular_bg_grit_literal,
-            regular_bg_literal=indent(regular_bg_literal, template['indentation'], indentation_depth),
+            objects_classes_definition=objects_classes_definition,
+            regular_bg=regular_bg,
             tile_ids_definition=tile_ids_definition)
 
     def butano_source(self):
         # Convert the TMX into its C++ source.
+
+        data_definitions = list()
 
         template = _templates[self._target]
         match self._target:
@@ -764,6 +769,7 @@ class MapItem:
             tiles_getter = template['tiles_getter_template'].format(map=self)
 
         return template['source_template'].format(
+            data_definitions='\n\n'.join([d for d in data_definitions if d is not None]),
             map=self,
             object_getter=object_getter,
             objects_definition=objects_definition,

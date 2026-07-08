@@ -3,8 +3,10 @@
 
 {includes}
 
-{regular_bg_grit_literal}
-{regular_bg_literal}
+{data_declarations}
+
+{item_declarations}
+
 {objects_classes_definition}
 {object_ids_definition}
 {tile_ids_definition}

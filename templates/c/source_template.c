@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+{data_definitions}
+
 {objects_definition}
 
 {tiles_definition}

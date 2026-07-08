@@ -1,5 +1,7 @@
 #include "bntmx_map_items_{map._name}.h"
 
+{data_definitions}
+
 namespace bntmx::map_items
 {{
 {objects_definition}
