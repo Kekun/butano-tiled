@@ -38,18 +38,6 @@ _templates = {
         'bg_palette_item': read_template(Target.butano, 'bg_palette_item.h'),
         'header_template': read_template(Target.butano, 'header_template.h'),
         'indentation': '    ',
-        'map_object_template': read_template(Target.butano, 'map_object_template.h'),
-        'object_dummy': read_template(Target.butano, 'object_dummy.h'),
-        'object_getter': read_template(Target.butano, 'object_getter.h'),
-        'object_ids_definition_empty': read_template(Target.butano, 'object_ids_definition_empty.h'),
-        'object_ids_definition_template': read_template(Target.butano, 'object_ids_definition_template.h'),
-        'objects_classes_definition_empty': read_template(Target.butano, 'objects_classes_definition_empty.h'),
-        'objects_classes_definition_template': read_template(Target.butano, 'objects_classes_definition_template.h'),
-        'objects_definition_empty': read_template(Target.butano, 'objects_definition_empty.h'),
-        'objects_definition_template': read_template(Target.butano, 'objects_definition_template.h'),
-        'objects_dummy': read_template(Target.butano, 'objects_dummy.h'),
-        'objects_getter_classless': read_template(Target.butano, 'objects_getter_classless.h'),
-        'objects_getter_with_class': read_template(Target.butano, 'objects_getter_with_class.h'),
         'regular_bg_item_declaration': read_template(Target.butano, 'regular_bg_item_declaration.h'),
         'regular_bg_map': read_template(Target.butano, 'regular_bg_map.h'),
         'regular_bg_tiles': read_template(Target.butano, 'regular_bg_tiles.h'),
@@ -58,18 +46,6 @@ _templates = {
     Target.c: {
         'header_template': read_template(Target.c, 'header_template.h'),
         'indentation': '    ',
-        'map_object_template': read_template(Target.c, 'map_object.h'),
-        'object_dummy': read_template(Target.c, 'object_dummy.h'),
-        'object_getter': read_template(Target.c, 'object_getter.h'),
-        'object_ids_definition_empty': read_template(Target.c, 'object_ids_definition_empty.h'),
-        'object_ids_definition_template': read_template(Target.c, 'object_ids_definition_template.h'),
-        'objects_classes_definition_empty': read_template(Target.c, 'objects_classes_definition_empty.h'),
-        'objects_classes_definition_template': read_template(Target.c, 'objects_classes_definition_template.h'),
-        'objects_definition_empty': read_template(Target.c, 'objects_definition_empty.h'),
-        'objects_definition_template': read_template(Target.c, 'objects_definition_template.h'),
-        'objects_dummy': read_template(Target.c, 'objects_dummy.h'),
-        'objects_getter_classless': read_template(Target.c, 'objects_getter.h'),
-        'objects_getter_with_class': read_template(Target.c, 'objects_getter.h'),
         'source_template': read_template(Target.c, 'source_template.c'),
     },
 }
@@ -132,6 +108,18 @@ def multiline_c_array(l: list, indentation: str, depth: int) -> str:
     """
 
     return '{\n' + indent(lines(l, ','), indentation, depth + 1) + '\n' + (indentation * depth) + '}'
+
+def multiline(l: list, indentation: str, depth: int) -> str:
+    """
+    Return the multiline C or C++ literal array or struct for the elements in the list.
+
+    :param l: the list of the array elements
+    :param indentation: the characters to use for an indentation level
+    :param depth: the depth of the indentation
+    :returns: the multiline array literal
+    """
+
+    return '\n'.join(map(lambda s: indent(str(s), indentation, depth), l))
 
 def mangle(name: str) -> str:
     """
@@ -578,6 +566,212 @@ class OrthogonalMapItem:
             ],
         }
 
+class MapObjectsItem:
+    def __init__(self, target: Target, tmx: TMX, name: str, info: dict):
+        self._templates = {
+            'indentation': '    ',
+            'map_object_template': read_template(target, 'map_object_template.h'),
+            'map_objects_class_enum_declaration': read_template(target, 'map_objects_class_enum_declaration.h'),
+            'map_objects_class_enum_pair': read_template(target, 'map_objects_class_enum_pair.h'),
+            'map_objects_class_names_declaration': read_template(target, 'map_objects_class_names_declaration.h'),
+            'map_objects_class_names_pair': read_template(target, 'map_objects_class_names_pair.h'),
+            'map_objects_data_declaration': read_template(target, 'map_objects_data_declaration.h'),
+            'map_objects_data_definition': read_template(target, 'map_objects_data_definition.h'),
+            'map_objects_enum_pair': read_template(target, 'map_objects_enum_pair.h'),
+            'map_objects_item_declaration': read_template(target, 'map_objects_item_declaration.h'),
+            'map_objects_names_declaration': read_template(target, 'map_objects_names_declaration.h'),
+            'map_objects_names_pair': read_template(target, 'map_objects_names_pair.h'),
+            'map_objects_slice': read_template(target, 'map_objects_slice.h'),
+            'map_objects_slices_data_declaration': read_template(target, 'map_objects_slices_data_declaration.h'),
+            'map_objects_slices_data_definition': read_template(target, 'map_objects_slices_data_definition.h'),
+            'object_getter': read_template(target, 'object_getter.h'),
+            'objects_getter_with_class': read_template(target, 'objects_getter_with_class.h'),
+        }
+
+        self._target = target
+        self._name = name
+        self._tmx = tmx
+        self._info = info
+
+        #FIXME
+
+        self._layers = info['layers'] if 'layers' in info else list()
+
+        # The list of MapObjects for the list of object layers
+        self._objects_per_layer = list(map(lambda layer_path: self._tmx.objects(layer_path), self._layers))
+        # This needs to be called once self._objects_per_layer is set
+        self._assign_id_and_layer_to_objects()
+        # The list of MapObjects for the whole map
+        #
+        # This needs to be called after self._assign_id_and_layer_to_objects()
+        # as otherwise it wouldn't match self._objects_per_layer anynmore
+        self._objects = sorted([map_object for layer_map_objects in self._objects_per_layer for _, info in layer_map_objects.objects().items() for map_object in info], key=lambda o: o.map_id)
+
+        self._class_enum_type = info['class_enum_type'] if 'class_enum_type' in info else None
+        match target:
+            case Target.butano:
+                self._class_enum_prefix = self._class_enum_type + '::' if self._class_enum_type is not None else ''
+            case Target.c:
+                self._class_enum_prefix = info['class_enum_prefix'] if 'class_enum_prefix' in info else ''
+            case _:
+                raise ValueError('Unknown target: ' + str(target))
+
+        self._enum_type = info['enum_type'] if 'enum_type' in info else None
+        self._enum_prefix = info['enum_prefix'] if 'enum_prefix' in info else ''
+
+        self._layers_count = len(self._layers)
+
+        # -1 because the lack of class isn't a class.
+        self._class_count = max(len(self._classes()) - 1, 0)
+        self._objects_slices_count = (self._class_count + 1) * self._layers_count
+        self._objects_count = len(self._objects)
+
+    def _assign_id_and_layer_to_objects(self):
+        objects_classes = self._classes()
+        id = 0
+
+        # Layers are already sorted, let's first sort by layers
+        for layer_index, layer_map_objects in enumerate(self._objects_per_layer):
+            objects = layer_map_objects.objects()
+
+            # Then sort by classes
+            for object_class in objects_classes:
+                if object_class not in objects:
+                    continue
+
+                # Then sort in whatever order the objects come in
+                for object in objects[object_class]:
+                    object.map_layer = layer_index
+                    object.map_id = id
+                    id += 1
+
+    def _classes(self):
+        # Return the sorted set of map object class names in the whole map, including the "" class
+        # If there are no objects layers an empty list is returned, there is not even the "" class.
+
+        return sorted(set([map_object_class for layer_map_objects in self._objects_per_layer for map_object_class in layer_map_objects.objects().keys()]))
+
+    def _spans(self):
+        # Return a list for each layer of lists of (index,length) pairs for each
+        # object of a given class in the layer, so objects can be flattened but
+        # they can still be found per layer and class.
+
+        index_lengths = []
+        index = 0
+        objects_classes = self._classes()
+        for layer in self._objects_per_layer:
+            layer_index_lengths = []
+            for object_class in objects_classes:
+                length = len(layer.objects()[object_class]) if object_class in layer.objects() else 0
+                layer_index_lengths.append((index, length))
+                index = index + length
+            index_lengths.append(layer_index_lengths)
+        return index_lengths
+
+    def process(self):
+        header_foreign_includes = set()
+        header_local_includes = set()
+        source_foreign_includes = set()
+        source_local_includes = set()
+
+        header_local_includes.add('bntmx.h')
+        match self._target:
+            case Target.butano:
+                header_foreign_includes.add('bn_array.h')
+                header_foreign_includes.add('bn_span.h')
+                header_foreign_includes.add('bn_string_view.h')
+                header_foreign_includes.add('bn_utility.h')
+                source_foreign_includes.add('bn_array.h')
+
+        map_objects_classes_labels = list(map(lambda i_and_object_class: self._templates['map_objects_class_names_pair'].format(
+            object_class_name=mangle(i_and_object_class[1]),
+            object_class_id=str(i_and_object_class[0])), enumerate(self._classes())))[1:]
+        map_objects_classes_labels_literal = multiline_c_array(map_objects_classes_labels, self._templates['indentation'], 0)
+        map_objects_classes_labels_definition = self._templates['map_objects_class_names_declaration'].format(
+            map_objects_item=self,
+            map_objects_classes=map_objects_classes_labels_literal)
+
+        if self._class_enum_type is not None:
+            object_class_enum = list(map(lambda i_and_object_class: self._templates['map_objects_class_enum_pair'].format(
+                map_objects_item=self,
+                class_id=str(i_and_object_class[0]),
+                class_name=mangle(i_and_object_class[1])), enumerate(self._classes())))[1:]
+            map_object_class_enum_literal = multiline_c_array(object_class_enum, self._templates['indentation'], 0)
+            map_objects_class_enum_declaration = self._templates['map_objects_class_enum_declaration'].format(
+                map_objects_item=self,
+                object_class_enum=map_object_class_enum_literal)
+        else:
+            map_objects_class_enum_declaration = None
+
+        map_objects_data_declaration = self._templates['map_objects_data_declaration'].format(map_objects_item=self)
+        map_objects_slices_data_declaration = self._templates['map_objects_slices_data_declaration'].format(map_objects_item=self)
+        map_objects_item_declaration = self._templates['map_objects_item_declaration'].format(map_objects_item=self)
+        map_objects_getter_with_class = self._templates['objects_getter_with_class']
+
+        object_ids = list(map(lambda map_object: self._templates['map_objects_names_pair'].format(
+            object_name=mangle(map_object.id) if map_object.id is not None else '',
+            object_id=str(map_object.map_id)), [map_object for map_object in self._objects]))
+
+        object_ids_literal = multiline_c_array(object_ids, self._templates['indentation'], 0)
+        object_ids_definition = self._templates['map_objects_names_declaration'].format(
+            map_objects_item=self,
+            object_ids=object_ids_literal)
+
+        if self._enum_type is not None:
+            object_enum = list(map(lambda i_and_object_class: self._templates['map_objects_enum_pair'].format(
+                id=str(i_and_object_class[0]),
+                enum_prefix=self._enum_prefix,
+                name=mangle(i_and_object_class[1])), enumerate(self._objects_classes())))[1:]
+            object_enum_literal = multiline_c_array(object_enum, self._templates['indentation'], 0)
+            map_objects_enum_declaration = self._templates['map_objects_enum_declaration'].format(
+                enum_type=self._enum_type,
+                map_objects_item=self,
+                object_count=self._objects_count,
+                object_enum=object_enum_literal)
+        else:
+            map_objects_enum_declaration = None
+
+        # Literal array of object spans for each object class, per objects layer either nested or flattened.
+        objects_slices_nested_literal = multiline_c_array(map(lambda layer: multiline_c_array(map(lambda span: self._templates['map_objects_slice'].format(index=span[0], length=span[1]), layer), self._templates['indentation'], 0), self._spans()), self._templates['indentation'], 0)
+        objects_slices_flat_literal = multiline_c_array(lines(map(lambda layer: lines(map(lambda span: self._templates['map_objects_slice'].format(index=span[0], length=span[1]), layer), ''), self._spans()), '').splitlines(), self._templates['indentation'], 0)
+        object_to_cpp_literal = lambda o: self._templates['map_object_template'].format(x=o.x, y=o.y, id=o.map_id)
+        objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), self._templates['indentation'], 0)
+
+        map_object_getter = self._templates['object_getter']
+        map_objects_definition = self._templates['map_objects_data_definition'].format(
+            map_objects_item=self,
+            objects=objects_literal)
+        map_objects_slices_definition = self._templates['map_objects_slices_data_definition'].format(
+            map_objects_item=self,
+            map_objects_slices=objects_slices_flat_literal)
+        map_objects_getter_with_class = self._templates['objects_getter_with_class']
+
+        return {
+            'header_foreign_includes': header_foreign_includes,
+            'header_local_includes': header_local_includes,
+            'source_foreign_includes': source_foreign_includes,
+            'source_local_includes': source_local_includes,
+            'data_declarations': [
+                map_objects_data_declaration,
+                map_objects_slices_data_declaration,
+            ],
+            'item_declarations': [
+                map_objects_item_declaration,
+                map_objects_classes_labels_definition,
+                map_objects_class_enum_declaration,
+                map_objects_enum_declaration,
+                object_ids_definition,
+            ],
+            'data_definitions': [
+                map_objects_definition,
+                map_objects_slices_definition,
+            ],
+        }
+
+        # FIXME
+        # object_getter=map_object_getter,
+        # objects_getter_with_class=map_objects_getter_with_class)
+
 class MapItem:
     def __init__(self, target: Target, tmx_filename):
         self._target = target
@@ -593,26 +787,11 @@ class MapItem:
 
         self._map_tiles_item = OrthogonalMapItem(target, self._tmx, self._name, descriptor['map_tiles']) if 'map_tiles' in descriptor else None
 
-        objects = descriptor["map_objects"] if "map_objects" in descriptor else dict()
-        self._objects_layers = objects["layers"] if "layers" in objects else list()
-
-        # The list of MapObjects for the list of object layers
-        self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._objects_layers))
-        # This needs to be called once self._objects_layers_objects is set
-        self._assign_id_and_layer_to_objects()
-        # The list of MapObjects for the whole map
-        #
-        # This needs to be called after self._assign_id_and_layer_to_objects()
-        # as otherwise it wouldn't match self._objects_layers_objects anynmore
-        self._objects = sorted([map_object for layer_map_objects in self._objects_layers_objects for _, map_objects in layer_map_objects.objects().items() for map_object in map_objects], key=lambda o: o.map_id)
+        self._map_objects_item = MapObjectsItem(target, self._tmx, self._name, descriptor['map_objects']) if 'map_objects' in descriptor else None
 
         self._width_in_pixels, self._height_in_pixels = self._tmx.dimensions_in_pixels()
 
         self._regular_bg_layers_count = len(self._regular_bg_layers)
-        self._objects_layers_count = len(self._objects_layers)
-
-        self._objects_classes_count = len(self._objects_classes())
-        self._objects_count = len(self._objects)
 
         # Regular background info
 
@@ -628,58 +807,6 @@ class MapItem:
         assert 'height' not in regular_bg
         self._regular_bg_info['type'] = 'regular_bg'
         self._regular_bg_info['height'] = self.regular_bg_dimensions()[1]
-
-    def _assign_id_and_layer_to_objects(self):
-        objects_classes = self._objects_classes()
-        id = 0
-
-        # Layers are already sorted, let's first sort by layers
-        for layer_index, layer_map_objects in enumerate(self._objects_layers_objects):
-            objects = layer_map_objects.objects()
-
-            # Then sort by classes
-            for object_class in objects_classes:
-                if object_class not in objects:
-                    continue
-
-                # Then sort in whatever order the objects come in
-                for object in objects[object_class]:
-                    object.map_layer = layer_index
-                    object.map_id = id
-                    id += 1
-
-    def _objects_classes(self):
-        # Return the sorted set of map object class names in the whole map, including the "" class
-        # If there are no objects layers an empty list is returned, there is not even the "" class.
-
-        return sorted(set([map_object_class for layer_map_objects in self._objects_layers_objects for map_object_class in layer_map_objects.objects().keys()]))
-
-    def _objects_classes_enum(self, namespace):
-        # Return the list of enumeration definitions for the map object class names in the whole map, excluding the "" class
-
-        return list(map(lambda i_and_object_class: namespace + mangle(i_and_object_class[1]).upper() + "=" + str(i_and_object_class[0]), enumerate(self._objects_classes())))[1:]
-
-    def _object_ids_enum(self, namespace):
-        # Return the list of enumeration definitions for the map object ids in the whole map, excluding the None ids
-
-        return [namespace + mangle(map_object.id).upper() + "=" + str(map_object.map_id) for map_object in self._objects if map_object.id is not None]
-
-    def _objects_spans(self):
-        # Return a list for each layer of lists of (index,length) pairs for each
-        # object of a given class in the layer, so objects can be flattened but
-        # they can still be found per layer and class.
-
-        index_lengths = []
-        index = 0
-        objects_classes = self._objects_classes()
-        for layer in self._objects_layers_objects:
-            layer_index_lengths = []
-            for object_class in objects_classes:
-                length = len(layer.objects()[object_class]) if object_class in layer.objects() else 0
-                layer_index_lengths.append((index, length))
-                index = index + length
-            index_lengths.append(layer_index_lengths)
-        return index_lengths
 
     def dependencies(self):
         return self._tmx.dependencies()
@@ -736,27 +863,11 @@ class MapItem:
             case Target.butano:
                 regular_bg = self._name + '_regular_bg' if self._regular_bg_layers_count > 0 else "bn::optional<bn::regular_bg_item>()"
                 indentation_depth = 1
-                namespace = ""
             case Target.c:
                 regular_bg = ""
                 indentation_depth = 0
-                namespace = "BNTMX_MAP_ITEMS_" + self._name.upper() + "_"
             case _:
                 raise ValueError('Unknown target: ' + str(self._target))
-
-        objects_classes = self._objects_classes_enum(namespace)
-        if len(objects_classes) == 0:
-            objects_classes_definition = template['objects_classes_definition_empty']
-        else:
-            objects_classes_literal = multiline_c_array(objects_classes, template['indentation'], indentation_depth)
-            objects_classes_definition = template['objects_classes_definition_template'].format(map=self, objects_classes=objects_classes_literal)
-
-        object_ids = self._object_ids_enum(namespace)
-        if len(object_ids) == 0:
-            object_ids_definition = template['object_ids_definition_empty']
-        else:
-            object_ids_literal = multiline_c_array(object_ids, template['indentation'], indentation_depth)
-            object_ids_definition = template['object_ids_definition_template'].format(map=self, object_ids=object_ids_literal)
 
         # Regular background
         if self._target == Target.butano and regular_bg_data is not None:
@@ -812,13 +923,19 @@ class MapItem:
             data_declarations += data['data_declarations']
             item_declarations += data['item_declarations']
 
+        # Map objects
+        if self._map_objects_item is not None:
+            data = self._map_objects_item.process()
+            header_foreign_includes |= data['header_foreign_includes']
+            header_local_includes |= data['header_local_includes']
+            data_declarations += data['data_declarations']
+            item_declarations += data['item_declarations']
+
         return template['header_template'].format(
             data_declarations='\n\n'.join([d for d in data_declarations if d is not None]),
             includes=includes(header_foreign_includes, header_local_includes),
             item_declarations=indent('\n\n'.join([d for d in item_declarations if d is not None]), template['indentation'], indentation_depth),
             map=self,
-            object_ids_definition=object_ids_definition,
-            objects_classes_definition=objects_classes_definition,
             regular_bg=regular_bg)
 
     def butano_source(self):
@@ -829,33 +946,6 @@ class MapItem:
         data_definitions = list()
 
         template = _templates[self._target]
-        match self._target:
-            case Target.butano:
-                indentation_depth = 1
-                namespace = "bntmx::map_items::" + self._name + "::"
-            case Target.c:
-                indentation_depth = 0
-                namespace = "BNTMX_MAP_ITEMS_" + self._name.upper() + "_"
-            case _:
-                raise ValueError('Unknown target: ' + str(self._target))
-
-        objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), template['indentation'], indentation_depth + 1), self._objects_spans()), template['indentation'], indentation_depth)
-        object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
-        objects_literal = multiline_c_array(list(map(object_to_cpp_literal, self._objects)), template['indentation'], indentation_depth)
-
-        if self._objects_count == 0 or self._objects_classes_count == 0 or self._objects_layers_count == 0:
-            object_getter = template['object_dummy']
-            objects_definition = template['objects_definition_empty']
-            objects_getter_classless = template['objects_dummy']
-            objects_getter_with_class = template['objects_dummy']
-        else:
-            object_getter = template['object_getter']
-            objects_definition = template['objects_definition_template'].format(
-                map=self,
-                objects=objects_literal,
-                objects_spans=objects_spans)
-            objects_getter_classless = template['objects_getter_classless']
-            objects_getter_with_class = template['objects_getter_with_class']
 
         # Map tiles
         if self._map_tiles_item is not None:
@@ -867,14 +957,24 @@ class MapItem:
         # FIXME Drop tiles_getter
         tiles_getter = ''
 
+        # Map objects
+        if self._map_objects_item is not None:
+            data = self._map_objects_item.process()
+            source_foreign_includes |= data['source_foreign_includes']
+            source_local_includes |= data['source_local_includes']
+            data_definitions += data['data_definitions']
+
+        # FIXME Drop map_object_getter
+        map_object_getter = ''
+        # FIXME Drop map_objects_getter_with_class
+        map_objects_getter_with_class = ''
+
         return template['source_template'].format(
             data_definitions='\n\n'.join([d for d in data_definitions if d is not None]),
             includes=includes(source_foreign_includes, source_local_includes),
             map=self,
-            object_getter=object_getter,
-            objects_definition=objects_definition,
-            objects_getter_classless=objects_getter_classless,
-            objects_getter_with_class=objects_getter_with_class,
+            object_getter=map_object_getter,
+            objects_getter_with_class=map_objects_getter_with_class,
             tiles_getter=tiles_getter)
 
 def process(target: Target, grit, maps_dirs, build_dir):

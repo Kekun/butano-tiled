@@ -6,6 +6,13 @@
 #include <bn_camera_ptr.h>
 #include <bn_core.h>
 #include <bn_display.h>
+#include <bn_log.h>
+
+enum class WonderlandObjectClass {
+    door,
+    spawn,
+};
+
 #include "bn_regular_bg_items_wonderland_background.h"
 #include "bn_regular_bg_ptr.h"
 #include "bntmx_map_items_wonderland.h"
@@ -13,6 +20,18 @@
 int main()
 {
     bn::core::init();
+
+    for (auto object_class: bntmx::map_items::wonderland_map_objects_class_names_span) {
+        BN_LOG("wonderland.tmx class id ", std::get<0>(object_class), " is named ", std::get<1>(object_class));
+    }
+
+    for (auto object_class: bntmx::map_items::wonderland_map_objects_class_enum_span) {
+        BN_LOG("wonderland.tmx class id ", std::get<0>(object_class), " matches WonderlandObjectClass value ", static_cast<int>(std::get<1>(object_class)));
+    }
+
+    for (auto map_object: bntmx::map_items::wonderland_map_objects.objects(0)) {
+        BN_LOG("wonderland.tmx layer 0 object id ", map_object.id, " is at position ", map_object.position.x(), "-", map_object.position.y());
+    }
 
     bn::camera_ptr camera = bn::camera_ptr::create(0, 0);
 

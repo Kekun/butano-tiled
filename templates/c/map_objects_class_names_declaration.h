@@ -1,0 +1,1 @@
+const struct {{ uint16_t id; bntmx_string_view value; }} bntmx_map_items_{map_objects_item._name}_map_objects_class_names_array[{map_objects_item._class_count}] = {map_objects_classes};

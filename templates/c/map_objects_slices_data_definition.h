@@ -1,0 +1,1 @@
+const bntmx_slice _bntmx_map_items_{map_objects_item._name}_map_objectsObjectsSlice[{map_objects_item._objects_slices_count}] = {map_objects_slices};

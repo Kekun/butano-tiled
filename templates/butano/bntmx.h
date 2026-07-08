@@ -16,6 +16,12 @@
 namespace bntmx
 {
 
+struct slice
+{
+    uint16_t index;
+    uint16_t length;
+};
+
 using map_tile = uint16_t;
 
 struct map_object
@@ -23,6 +29,8 @@ struct map_object
     bn::fixed_point position;
     uint16_t id;
 };
+
+using map_object_class = uint16_t;
 
 class map_tiles_item
 {
@@ -264,6 +272,72 @@ private:
     bn::size _tile_dimensions;
 };
 
+class map_objects_item
+{
+public:
+    /**
+     * @brief Constructor.
+     */
+    constexpr map_objects_item(const bntmx::map_object* objects, int layers_count, int objects_count, const bntmx::slice* object_slices, int classes_count)
+        : _layers_count(layers_count)
+        , _objects_count(objects_count)
+        , _classes_count(classes_count)
+        , _objects(objects)
+        , _object_slices(object_slices)
+    {
+    }
+
+    /**
+     * @brief Returns the number of referenced layers.
+     */
+    [[nodiscard]] constexpr int layers_count() const
+    {
+        return _layers_count;
+    }
+
+    /**
+     * @brief Returns the object with the given ID.
+     * @param object_id ID of the objects.
+     */
+    [[nodiscard]] const bntmx::map_object object(int object_id) const
+    {
+        BN_ASSERT(object_id < _objects_count, "Invalid object ID: ", object_id);
+        return _objects[object_id];
+    }
+
+    /**
+     * @brief Returns the classless objects of the given layer of the map.
+     * @param objects_layer_index Index of the objects layer.
+     */
+    [[nodiscard]] const bn::span<const bntmx::map_object> objects(int objects_layer_index) const
+    {
+        BN_ASSERT(objects_layer_index < _layers_count, "Invalid objects layer index: ", objects_layer_index);
+        const bntmx::slice* object_slices = _object_slices + objects_layer_index * (_classes_count + 1);
+        return bn::span(&_objects[object_slices[0].index], object_slices[0].length);
+    }
+
+    /**
+     * @brief Returns the objects of the given class and layer of the map.
+     * @param objects_layer_index Index of the objects layer.
+     * @param objects_class Class of the objects.
+     */
+    [[nodiscard]] const bn::span<const bntmx::map_object> objects(int objects_layer_index, bntmx::map_object_class objects_class) const
+    {
+        BN_ASSERT(objects_layer_index < _layers_count, "Invalid objects layer index: ", objects_layer_index);
+        BN_ASSERT(objects_class < _classes_count, "Invalid objects class: ", objects_class);
+        const bntmx::slice* object_slices = _object_slices + objects_layer_index * (_classes_count + 1);
+        return bn::span(&_objects[object_slices[objects_class].index], object_slices[objects_class].length);
+    }
+
+private:
+    int _layers_count;
+    int _objects_count;
+    int _classes_count;
+
+    const bntmx::map_object* _objects;
+    const bntmx::slice* _object_slices;
+};
+
 class map_item
 {
 
@@ -291,33 +365,13 @@ public:
     virtual constexpr int regular_bg_layers_count() const = 0;
 
     /**
-     * @brief Returns the number of objects layers of the map.
-     */
-    virtual constexpr int objects_layers_count() const = 0;
-
-    /**
      * @brief Returns the regular background layers of the map.
      */
     virtual constexpr  bn::optional<bn::regular_bg_item> regular_bg() const = 0;
 
     /**
-     * @brief Returns the object with the given ID.
-     * @param object_id ID of the objects.
+     * @brief Returns the objects item of the map.
      */
-    virtual const bntmx::map_object object(int object_id) const = 0;
-
-    /**
-     * @brief Returns the classless objects of the given layer of the map.
-     * @param objects_layer_index Index of the objects layer.
-     */
-    virtual const bn::span<const bntmx::map_object> objects(int objects_layer_index) const = 0;
-
-    /**
-     * @brief Returns the objects of the given class and layer of the map.
-     * @param objects_layer_index Index of the objects layer.
-     * @param objects_class Class of the objects.
-     */
-    virtual const bn::span<const bntmx::map_object> objects(int objects_layer_index, int objects_class) const = 0;
 };
 
 }

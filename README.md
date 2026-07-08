@@ -193,23 +193,96 @@ bn::regular_bg_ptr regular_bg = bntmx::map_items::world_regular_bg.create_bg(0, 
 
 ### Map objects
 
-Each objects layer is exported as lists of objects of type `bntmx::map_object`,
-a list of object IDs and a list of object classes.
-Objects have an unique ID and a position.
-Object IDs are integers in the [0..65535] range, so you can have up to 65536
-different objects in a map, which should be more than enough.
+A map file can contain multiple map objects layers. Each layer is exported as
+a list of objects, and each object has an ID, aposition, a name, and an object
+class. Object IDs is unique to its map, and multiple objects can have the same
+name or class within or across maps. Object IDs are integers in the [0..65535]
+range, so you can have up to 65536 different objects in a map.
 
+**FIXME**
 The names and classes of the objects are exported as IDs in `enum object_id` and
 `enum object_class` found in the namespace of the generated map class.
 Objects of each class as well as classless objects are stored separately from
 each other for each layer.
 Please use valid C++ enumeration value names for your object names and classes.
 
+**FIXME**
 The ID of an object isn't the one defined in the map file, so you have to name
 an object to refer to it.
 The position of an object isn't the one defined in the map file but its center.
 
-You can access the objects via `bntmx::map::objects()`.
+An example of the `*.json` files required for map regular backgrounds is the
+following:
+
+```json
+{
+    "map_objects": {
+        "layers": [
+            []
+        ]
+    }
+}
+```
+
+The fields for map objects are the following:
+
+- `"layers"`: the list of map objects layers to export the objects from. Layers
+  must be referred to by their absolute path, separating layer groups from their
+  children with `/`. For each map objects layer, you can use an objects layer or
+  a list of objects layers.
+- `"class_enum_type"`: optional field which specifies the name of the
+  enumeration type to use to generate a class ID to enumeration value pairing
+  array from the map objects' class names. The Butano target will namespace
+  class enum values with this type.
+- `"class_enum_prefix"`: optional field which specifies the prefix to apply to
+  the class names to make them match the class enumeration values. Used only for
+  the C target to work around the lack of namespaces.
+
+If the conversion process has finished successfully, a `bntmx::map_objects_item`
+should have been generated in the `build` folder.
+
+If there are object classes, a `bn::pair<uint16_t, bn::string_view>` array and
+its matching span should have been generated alongside the
+`bntmx::map_objects_item`. If you declared a class enumeration type, a similar
+array and span should have been generated too.
+
+For example, from two files named `world.tmx` and `world.json`, a header file
+named `bntmx_map_items_world.h` is generated in the `build` folder.
+
+You can use this header to access a map's objects with only one line of
+C++ code:
+
+```c++
+#include "bntmx_map_items_world.h"
+
+bntmx::map_object map_object = bntmx::map_items::world_map_objects.object(0);
+```
+
+You can use this header to access a map's object class names with only one line
+of C++ code:
+
+```c++
+#include "bntmx_map_items_world.h"
+
+bn::array<const bn::pair<uint16_t, bn::string_view>, 3> array = bntmx::map_items::world_map_object_class_names_array;
+bn::span<const bn::pair<uint16_t, bn::string_view>> span = bntmx::map_items::world_map_object_class_names_span;
+```
+
+You can use this header to access a map's object class enum with only one line
+of C++ code:
+
+```c++
+enum class object_class {
+    bridge,
+    house,
+    tree,
+}
+
+#include "bntmx_map_items_world.h"
+
+bn::array<const bn::pair<uint16_t, object_class>, 3> array = bntmx::map_items::world_map_object_class_enum_array;
+bn::span<const bn::pair<uint16_t, object_class>> span = bntmx::map_items::world_map_object_class_enum_span;
+```
 
 ### Map tiles
 

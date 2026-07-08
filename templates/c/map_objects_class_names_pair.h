@@ -1,0 +1,1 @@
+{{ {object_class_id}, "{object_class_name}" }}

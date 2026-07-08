@@ -1,0 +1,1 @@
+extern const bn::array<bntmx::map_object, {map_objects_item._objects_count}> _bntmx_map_items_{map_objects_item._name}_map_objectsObjects;

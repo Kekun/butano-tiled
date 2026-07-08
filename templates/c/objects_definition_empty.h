@@ -1,1 +1,0 @@
-/* There is no objects in this map. */

@@ -1,0 +1,1 @@
+const const struct {{ uint16_t id; {map_objects_item._class_enum_type} value; }} bntmx_map_items_{map_objects_item._name}_map_objects_class_enum_array[{map_objects_item._class_count}] = {object_class_enum};

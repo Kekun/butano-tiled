@@ -1,0 +1,1 @@
+(bntmx_map_object) {{ (bntmx_fixed_point) {{ {x}, {y} }}, {id} }}

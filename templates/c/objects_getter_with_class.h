@@ -1,0 +1,1 @@
+(bntmx_slice) {{ &_objects[_objects_slices[objects_layer_index][objects_class].index], _objects_slices[objects_layer_index][objects_class].length }}

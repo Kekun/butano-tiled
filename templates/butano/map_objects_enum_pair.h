@@ -1,0 +1,1 @@
+bn::make_pair({id}, {enum_prefix}{name})

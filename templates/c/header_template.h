@@ -7,8 +7,6 @@
 
 {item_declarations}
 
-{objects_classes_definition}
-{object_ids_definition}
 #define bntmx_map_items_{map._name}_height_in_pixels() ({map._height_in_pixels})
 #define bntmx_map_items_{map._name}_regular_bg_layers_count() ({map._regular_bg_layers_count})
 #define bntmx_map_items_{map._name}_objects_layers_count() ({map._objects_layers_count})

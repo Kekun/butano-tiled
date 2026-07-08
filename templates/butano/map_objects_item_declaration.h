@@ -1,0 +1,1 @@
+constexpr inline bntmx::map_objects_item {map_objects_item._name}_map_objects(_bntmx_map_items_{map_objects_item._name}_map_objectsObjects.data(), {map_objects_item._layers_count}, {map_objects_item._objects_count}, _bntmx_map_items_{map_objects_item._name}_map_objectsObjectsSlice.data(), {map_objects_item._class_count});

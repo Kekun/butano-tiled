@@ -13,7 +13,9 @@
                 "layer_0/spawns"
             ],
             "layer_1/objects"
-        ]
+        ],
+        "class_enum_type": "WonderlandObjectClass",
+        "class_enum_prefix": "wonderland_object_class_"
     },
     "map_tiles": {
         "layers": [

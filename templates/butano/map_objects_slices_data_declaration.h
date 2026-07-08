@@ -1,0 +1,1 @@
+extern const bn::array<bntmx::slice, {map_objects_item._objects_slices_count}> _bntmx_map_items_{map_objects_item._name}_map_objectsObjectsSlice;

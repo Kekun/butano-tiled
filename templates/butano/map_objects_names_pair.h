@@ -1,0 +1,1 @@
+bn::make_pair({object_id}, bn::string_view("{object_name}"))

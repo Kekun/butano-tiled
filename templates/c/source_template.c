@@ -1,12 +1,10 @@
-#include "bntmx_map_items_{map._name}.h"
+#include "bntmx.h"
 
 {includes}
 
 #include <assert.h>
 
 {data_definitions}
-
-{objects_definition}
 
 const bntmx_map_object bntmx_map_items_{map._name}_object(int id)
 {{

@@ -1,1 +1,0 @@
-/* There are no objects classes in this map. */

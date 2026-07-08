@@ -1,0 +1,1 @@
+const bntmx_map_object _bntmx_map_items_{map_objects_item._name}_map_objectsObjects[{map_objects_item._objects_count}] = {objects};

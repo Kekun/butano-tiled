@@ -165,3 +165,36 @@ bntmx_map_tile bntmx_orthogonal_map_item_tile(const bntmx_orthogonal_map_item* t
     bntmx_point tile_position = bntmx_orthogonal_map_item_tile_position(this, x, y);
     return bntmx_map_tiles_item_tile(&this->tiles_item, layer_index, tile_position.x, tile_position.y);
 }
+
+/**
+ * @brief Returns the number of referenced layers.
+ */
+int bntmx_map_objects_item_layers_count(const bntmx_map_objects_item* this)
+{
+    return this->layers_count;
+}
+
+/**
+ * @brief Returns the object with the given ID.
+ * @param object_id ID of the objects.
+ */
+bntmx_map_object bntmx_map_objects_item_object(const bntmx_map_objects_item* this, int object_id)
+{
+    assert(object_id < this->objects_count);
+    return this->objects[object_id];
+}
+
+/**
+ * @brief Returns the objects of the given class and layer of the map.
+ * @param objects_layer_index Index of the objects layer.
+ * @param objects_class Class of the objects.
+ */
+bntmx_span bntmx_map_objects_item_objects(const bntmx_map_objects_item* this, int objects_layer_index, bntmx_map_object_class objects_class)
+{
+    assert(objects_layer_index < this->layers_count);
+    assert(objects_class < this->classes_count);
+    const bntmx_slice* object_slices = this->object_slices + objects_layer_index * (this->classes_count + 1);
+    const void* begin = &this->objects[object_slices[objects_class].index];
+    const void* end = begin + sizeof(bntmx_map_object) * object_slices[objects_class].length;
+    return (bntmx_span) { begin, end };
+}

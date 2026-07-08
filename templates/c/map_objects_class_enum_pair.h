@@ -1,0 +1,1 @@
+{{ {class_id}, {map_objects_item._class_enum_prefix}{class_name} }}
