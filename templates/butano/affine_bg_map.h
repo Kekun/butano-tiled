@@ -1,0 +1,1 @@
+bn::affine_bg_map_item({name}_bntmx_gfxMap[0], bn::size({width}, {height}), {map_compression}, {maps}, {big})

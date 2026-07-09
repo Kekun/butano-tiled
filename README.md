@@ -191,6 +191,104 @@ C++ code:
 bn::regular_bg_ptr regular_bg = bntmx::map_items::world_regular_bg.create_bg(0, 0);
 ```
 
+### Affine backgrounds
+
+A map file can contain multiple affine backgrounds. Each background can contain
+up to 256 tiles. The size of a small affine background (which are faster) must
+be 128x128, 256x256, 512x512 or 1024x1024 pixels. Big affine backgrounds are
+slower CPU wise, but can have any width or height multiple of 256 pixels.
+
+Multiple affine background layers are allowed by listing them in the `"layers"`
+field. Each background layer is drawn centered on the smallest possible image
+that can contain it.
+
+An example of the `*.json` files required for affine backgrounds is the following:
+
+```json
+{
+    "affine_bg": {
+        "layers": [
+            []
+        ]
+    }
+}
+```
+
+The fields for affine backgrounds are the following:
+
+- `"layers"`: the list of tile layers to render as affine backgrounds. Layers
+  must be referred to by their absolute path, separating layer groups from their
+  children with `/`. For each affine background, you can use a tile layer or a
+  list of tile layers, in which case each layer will be drawn on top of the
+  previous one as a single background image.
+- `"palette_item"`: optional field which specifies the name of the
+  [bn::bg_palette_item](https://gvaliente.github.io/butano/classbn_1_1bg__palette__item.html)
+  to use for this background.
+- `"colors_count"`: optional field which specifies the background palette size
+  [1..256].
+- `"repeated_tiles_reduction"`: optional field which specifies if repeated tiles
+  must be reduced or not (`true` by default).
+- `"big"`: optional boolean field which specifies if maps generated with this
+  item are big or not. If this field is omitted, big maps are generated only if
+  needed.
+- `"draw_big"`: optional boolean field which specifies if the dimensions the
+  layers are drawn into should favor generating small maps or not. For example,
+  a 360x240 pixels map could generate a faster 512x512 pixels small map or a
+  more memory efficient 512x256 pixels map. If this field is omitted, big maps
+  are generated only if needed.
+- `"tiles_compression"`: optional field which specifies the compression of the
+  tiles data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+- `"palette_compression"`: optional field which specifies the compression of the
+  colors data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+- `"map_compression"`: optional field which specifies the compression of the map
+  data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+- `"compression"`: optional field which specifies the compression of the tiles,
+  the colors and the map data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+
+If the conversion process has finished successfully, a
+[bn::affine_bg_item](https://gvaliente.github.io/butano/classbn_1_1affine__bg__item.html)
+should have been generated in the `build` folder.
+
+For example, from two files named `world.tmx` and `world.json`, a header file
+named `bntmx_map_items_world.h` is generated in the `build` folder.
+
+You can use this header to create an affine background with only one line of
+C++ code:
+
+```c++
+#include "bntmx_map_items_world.h"
+
+bn::affine_bg_ptr affine_bg = bntmx::map_items::world_affine_bg.create_bg(0, 0);
+```
+
 ### Map objects
 
 A map file can contain multiple map objects layers. Each layer is exported as
