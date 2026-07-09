@@ -33,20 +33,20 @@ The Butano target requires Butano 15.6.0 or greater.
 
 ## Usage
 
-Given a map named *mymap*, you should have the following files:
-- `maps/mymap.json`
-- `maps/mymap.tmx`
+Given a map named *world*, you should have the following files:
+- `maps/world.json`
+- `maps/world.tmx`
 
 The script will generate the following files:
-- `build/graphics/mymap.bmp`
-- `build/graphics/mymap.json`
-- `build/include/bntmx_maps_mymap.h`
-- `build/src/bntmx_maps_mymap.cpp`
+- `build/graphics/world.bmp`
+- `build/graphics/world.json`
+- `build/include/bntmx_maps_world.h`
+- `build/src/bntmx_maps_world.cpp`
 
 Each map is converted into an implementation of the abstract class `bntmx::map`
 listed in the `bntmx::maps` namespace.
-In our example, the class `bntmx::maps::mymap` is created and can be accessed
-via `bntmx_maps_mymap.h`.
+In our example, the class `bntmx::maps::world` is created and can be accessed
+via `bntmx_maps_world.h`.
 
 A map is rebuilt only if only of the files describing it changed, including the
 tilesets and their graphics.
