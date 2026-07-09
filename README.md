@@ -1,7 +1,7 @@
 # TMX Tiled Map Library for Butano
 
-This is a Tiled file map converter for Butano.
-It takes *.tmx files and makes their graphics, objects and tiles easily
+This is a [Tiled](https://www.mapeditor.org/) file map converter for Butano.
+It takes `*.tmx` files and makes their graphics, objects and tiles easily
 accessible from Butano.
 
 ## Maintainership Warning
@@ -52,67 +52,77 @@ tilesets and their graphics.
 
 ## Maps
 
-Maps are *.tmx files you can build with [Tiled](https://www.mapeditor.org/).
+A map file can contain multiple regular backgrounds, map tiles and map objects.
 
-Each map must have a *.json descriptor whose root object expects the following
-fields:
-- `"regular_bg"`: the paths to the layers to draw as a `bn::regular_bg_item`
-- `"map_objects"`: the paths to the layers whose objects should be exported
-- `"map_tiles"`: the paths to the layers whose tiles should be exported
+Multiple regular background layers are allowed by listing them in the `"layers"`
+field. Each layer is drawn centered on the smallest possible image that can
+contain it and whose sides are multiples of 256 pixels.
 
-The paths to layers are the names of the groups and layers from the *.tmx file
-joined with the / separator.
-You can access the layer "mylayer" in the group "mygroup" by writing a path with
-the / separator like this : "mygroup/mylayer".
+An example of the `*.json` files required for maps is the following:
 
-The layers they will be exported and indexed in the order they are listed.
-
-Layers also be an array of layers that will be merged together to give you more
-freedom in your file:
-- regular_bg layers from an array will be drawn one onto the other to form a
-  single layer
-- objects layers from an array will have all their objects exported into a
-  single layer
-- tiles layers from an array will be merged one onto the other to form a
-  single layer
-
-Here is an example of what a *.json decriptor could look like:
 ```json
 {
-    "regular_bg": [
-        "canopy",
-        [
-            "floor",
-            "walls"
-        ]
-    ],
-    "map_objects": [
-        [],
-        [
-            "doors",
-            "enemies",
-            "npcs",
-            "teleporters"
-        ],
-    ],
-    "map_tiles": [
-        "wall_collisions",
-        "ground_collisions"
-    ]
 }
 ```
 
-## Regular Backgrounds
+The fields for maps are the following:
 
-Each regular_bg layer is drawn centered on the smallest possible image whose width
-and height are multiples of 256 and that can contain it.
-These images are compiled into a single image and converted into a single
-`bn::regular_bg_item` containing them all and named like your map.
+- `"regular_bg"`: optional field which specifies the regular backgrounds, see
+  the *Regular backgrounds* section below.
+- `"map_objects"`: optional field which specifies the map objects, see the
+  *Map objects* section below.
+- `"map_tiles"`: optional field which specifies the map tiles, see the
+  *Map tiles* section below.
 
-You can access the graphics via `bntmx::map::regular_bg()` or as the bundled
-`bntmx::maps::world_regular_bg` asset.
+### Regular backgrounds
 
-## Map objects
+A map file can contain multiple regular backgrounds. Each background can contain
+up to 1024 tiles. The size of a small regular background (which are faster) must
+be 256x256, 256x512, 512x256 or 512x512 pixels. Big regular backgrounds are
+slower CPU wise, but can have any width or height multiple of 256 pixels.
+
+Multiple regular background layers are allowed by listing them in the `"layers"`
+field. Each background layer is drawn centered on the smallest possible image
+that can contain it.
+
+An example of the `*.json` files required for map regular backgrounds is the
+following:
+
+```json
+{
+    "regular_bg": {
+        "layers": [
+            []
+        ]
+    }
+}
+```
+
+The fields for regular backgrounds are the following:
+
+- `"layers"`: the list of tile layers to render as regular backgrounds. Layers
+  must be referred to by their absolute path, separating layer groups from their
+  children with `/`. For each regular background, you can use a tile layer or a
+  list of tile layers, in which case each layer will be drawn on top of the
+  previous one as a single background image.
+
+If the conversion process has finished successfully, a
+[bn::regular_bg_item](https://gvaliente.github.io/butano/classbn_1_1regular__bg__item.html)
+should have been generated in the `build` folder.
+
+For example, from two files named `world.tmx` and `world.json`, a header file
+named `bntmx_map_items_world.h` is generated in the `build` folder.
+
+You can use this header to create a regular background with only one line of
+C++ code:
+
+```c++
+#include "bntmx_map_items_world.h"
+
+bn::regular_bg_ptr regular_bg = bntmx::map_items::world_regular_bg.create_bg(0, 0);
+```
+
+### Map objects
 
 Each objects layer is exported as lists of objects of type `bntmx::map_object`,
 a list of object IDs and a list of object classes.
@@ -132,7 +142,7 @@ The position of an object isn't the one defined in the map file but its center.
 
 You can access the objects via `bntmx::map::objects()`.
 
-## Map tiles
+### Map tiles
 
 Each tiles layer is exported as a list of tile IDs of type `bntmx::map_tile`
 ordered from left to right and from top to bottom.
