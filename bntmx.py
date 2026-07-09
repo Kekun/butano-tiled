@@ -161,17 +161,14 @@ class MapItem:
         self._name = mangle(self._basename)
         self._name_upper = self._name.upper()
         descriptor = open(os.path.splitext(tmx_filename)[0] + ".json")
-        self._descriptor = json.load(descriptor)
-        # Add empty lists so we don't ave to check their existence every time.
-        if "graphics" not in self._descriptor:
-            self._descriptor["graphics"] = []
-        if "objects" not in self._descriptor:
-            self._descriptor["objects"] = []
-        if "tiles" not in self._descriptor:
-            self._descriptor["tiles"] = []
+        descriptor = json.load(descriptor)
+
+        self._graphics_layers = descriptor["graphics"] if "graphics" in descriptor else list()
+        self._objects_layers = descriptor["objects"] if "objects" in descriptor else list()
+        self._tiles_layers = descriptor["tiles"] if "tiles" in descriptor else list()
 
         # The list of MapObjects for the list of object layers
-        self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._descriptor["objects"] if "objects" in self._descriptor else []))
+        self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._objects_layers))
         # This needs to be called once self._objects_layers_objects is set
         self._assign_id_and_layer_to_objects()
         # The list of MapObjects for the whole map
@@ -184,9 +181,9 @@ class MapItem:
         self._width_in_tiles, self._height_in_tiles = self._tmx.dimensions_in_tiles()
         self._tile_width, self._tile_height = self._tmx.tile_dimensions()
 
-        self._graphics_layers_count = len(self._descriptor["graphics"]) if "graphics" in self._descriptor else 0
-        self._objects_layers_count = len(self._descriptor["objects"]) if "objects" in self._descriptor else 0
-        self._tiles_layers_count = len(self._descriptor["tiles"]) if "tiles" in self._descriptor else 0
+        self._graphics_layers_count = len(self._graphics_layers)
+        self._objects_layers_count = len(self._objects_layers)
+        self._tiles_layers_count = len(self._tiles_layers)
 
         self._objects_classes_count = len(self._objects_classes())
         self._objects_count = len(self._objects)
@@ -270,7 +267,7 @@ class MapItem:
     def regular_bg_image(self):
         # Convert the TMX into its regular background image.
 
-        if "graphics" not in self._descriptor or len(self._descriptor["graphics"]) == 0:
+        if self._graphics_layers_count == 0:
             return None
 
         # The size of the map, in pixels
@@ -279,9 +276,8 @@ class MapItem:
         bg_width, bg_height = bg_size(src_width), bg_size(src_height)
 
         # Compose the layers into a single background image
-        layers_count = len(self._descriptor["graphics"])
-        gfx_im = Image.new("RGBA", (bg_width, bg_height * layers_count), self._tmx.background_color())
-        for i, layer_path in enumerate(self._descriptor["graphics"]):
+        gfx_im = Image.new("RGBA", (bg_width, bg_height * self._graphics_layers_count), self._tmx.background_color())
+        for i, layer_path in enumerate(self._graphics_layers):
             self._tmx.compose(gfx_im, layer_path, 0, bg_height * i)
 
         # Make the image paletted
@@ -361,7 +357,7 @@ class MapItem:
         # Get the C or C++ array literal of tiles for the given tiles layer path.
         tiles_layer_path_to_array_literal = lambda layer_path: tiles_to_array_literal(self._tmx.tiles(layer_path))
         # Get the C or C++ array literal of tiles layers for the given tiles layer paths.
-        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._descriptor["tiles"] if "tiles" in self._descriptor else [])), template['indentation'], indentation_depth)
+        tiles_literal = multiline_c_array(list(map(tiles_layer_path_to_array_literal, self._tiles_layers)), template['indentation'], indentation_depth)
 
         if self._objects_count == 0 or self._objects_classes_count == 0 or self._objects_layers_count == 0:
             object_getter = template['object_dummy']
