@@ -3,3 +3,15 @@ root = true
 [*.[c,cpp,h]]
 end_of_line = lf
 insert_final_newline = false
+
+[*.json]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
