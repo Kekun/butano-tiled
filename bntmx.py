@@ -521,6 +521,21 @@ class MapItem:
         self._objects_count = len(self._objects)
         self._tiles_layers_tiles_count = self._width_in_tiles * self._height_in_tiles
 
+        # Regular background info
+
+        # Copy regular_bg so we don't modify it
+        self._regular_bg_info = dict(regular_bg)
+
+        # Remove butano-tiled-specific fields
+        if 'layers' in self._regular_bg_info:
+            del self._regular_bg_info['layers']
+
+        # Ensure the user didn't set the fields we handle, and set them
+        assert 'type' not in regular_bg
+        assert 'height' not in regular_bg
+        self._regular_bg_info['type'] = 'regular_bg'
+        self._regular_bg_info['height'] = self.regular_bg_dimensions()[1]
+
     def _assign_id_and_layer_to_objects(self):
         objects_classes = self._objects_classes()
         id = 0
@@ -810,7 +825,7 @@ def process(target: Target, grit, maps_dirs, build_dir):
                 map_name = item.name()
 
                 tmx_json_filename = os.path.join(maps_dir, map_basename + ".json")
-                bmp_filename = os.path.join(build_dir, map_name + ".bntmx.bmp")
+                regular_bg_bmp_filename = os.path.join(build_dir, map_name + "_regular_bg.bntmx.bmp")
                 header_filename = os.path.join(build_dir, "include", "bntmx_map_items_" + map_name + ".h")
                 match target:
                     case Target.butano:
@@ -822,22 +837,16 @@ def process(target: Target, grit, maps_dirs, build_dir):
 
                 # Don't rebuild unchanged files
                 input_mtime = max(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [tmx_filename, tmx_json_filename] + item.dependencies()))
-                output_mtime = min(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [bmp_filename, header_filename, source_filename]))
+                output_mtime = min(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [regular_bg_bmp_filename, header_filename, source_filename]))
                 if input_mtime < output_mtime:
                     continue
 
                 # Export the regular background
-                gfx_im = item.regular_bg_image()
-                if gfx_im is not None:
-                    gfx_im.save(bmp_filename, "BMP")
+                regular_bg_image = item.regular_bg_image()
+                if regular_bg_image is not None:
+                    regular_bg_image.save(regular_bg_bmp_filename, "BMP")
                     _, src_height = item._tmx.dimensions_in_pixels()
-                    bg_height = item.regular_bg_dimensions()[1]
-                    info = {
-                        "type": "regular_bg",
-                        "bpp_mode": "bpp_4_auto",
-                        "height": bg_height,
-                    }
-                    regular_bg_item = RegularBgItem(target, bmp_filename, map_name, build_dir, info)
+                    regular_bg_item = RegularBgItem(target, regular_bg_bmp_filename, map_name + '_regular_bg', build_dir, item._regular_bg_info)
                     regular_bg_data = regular_bg_item.process(grit)
                 else:
                     regular_bg_data = None

@@ -3,7 +3,8 @@
         "layers": [
             "layer_0/graphics",
             "layer_1/graphics"
-        ]
+        ],
+        "bpp_mode": "bpp_4_auto"
     },
     "map_objects": {
         "layers": [

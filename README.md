@@ -105,6 +105,75 @@ The fields for regular backgrounds are the following:
   children with `/`. For each regular background, you can use a tile layer or a
   list of tile layers, in which case each layer will be drawn on top of the
   previous one as a single background image.
+- `"palette_item"`: optional field which specifies the name of the
+  [bn::bg_palette_item](https://gvaliente.github.io/butano/classbn_1_1bg__palette__item.html)
+  to use for this background.
+- `"bpp_mode"`: optional field which specifies the bits per pixel of the regular
+  background. This field is required if an external
+  [bn::bg_palette_item](https://gvaliente.github.io/butano/classbn_1_1bg__palette__item.html)
+  is referenced with `"palette_item"`:
+  - `"bpp_8"`: up to 256 colors.
+  - `"bpp_4_auto"`: up to 16 colors per
+    [tile](https://gvaliente.github.io/butano/group__tile.html). Butano tries to
+    quantize the image to fit the color palette into the required one. It is not
+    supported if an external
+    [bn::bg_palette_item](https://gvaliente.github.io/butano/classbn_1_1bg__palette__item.html)
+    is referenced with `"palette_item"`.
+  - `"bpp_4_manual"`: up to 16 colors per
+    [tile](https://gvaliente.github.io/butano/group__tile.html). Butano expects
+    that the image color palette is already valid for this mode.
+  - `"bpp_4"`: `"bpp_4_manual"` alias.
+
+The default is `"bpp_4_manual"` for 16 color images and `"bpp_8"` for 256 color
+images.
+
+- `"colors_count"`: optional field which specifies the background palette size
+  [1..256].
+- `"repeated_tiles_reduction"`: optional field which specifies if repeated tiles
+  must be reduced or not (`true` by default).
+- `"flipped_tiles_reduction"`: optional field which specifies if flipped tiles
+  must be reduced or not (`true` by default).
+- `"palette_reduction"`: optional field which specifies if repeated 16 color
+  palettes must be reduced or not (`true` by default).
+- `"big"`: optional boolean field which specifies if maps generated with this
+  item are big or not. If this field is omitted, big maps are generated only if
+  needed.
+- `"tiles_compression"`: optional field which specifies the compression of the
+  tiles data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+- `"palette_compression"`: optional field which specifies the compression of the
+    colors data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+- `"map_compression"`: optional field which specifies the compression of the map
+  data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
+- `"compression"`: optional field which specifies the compression of the tiles,
+  the colors and the map data:
+  - `"none"`: uncompressed data (this is the default option).
+  - `"lz77"`: LZ77 compressed data.
+  - `"run_length"`: run-length compressed data.
+  - `"huffman"`: Huffman compressed data.
+  - `"auto"`: uses the option which gives the smallest data size.
+  - `"auto_no_huffman"`: uses the option which gives the smallest data size,
+    excluding "huffman".
 
 If the conversion process has finished successfully, a
 [bn::regular_bg_item](https://gvaliente.github.io/butano/classbn_1_1regular__bg__item.html)
