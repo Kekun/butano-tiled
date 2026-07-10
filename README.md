@@ -421,8 +421,6 @@ Split the objects in 256x256 chunks to allow saving some collision detections.
 Rename the script and maybe move it to a directory, if deemed relevant.
 Maybe it should be `__init__.py`?
 
-Find free graphics (tileset, objects) and build a map with them.
-
 Maybe split the tile arrays in chunks, compress the chunks and decompress only a
 few chunks  at a time in RAM. Or keep them
 
@@ -432,3 +430,57 @@ Maybe allow getting the layer (and class?) for a given object ID? And position
 apart too.
 
 Change ID to name where relevant
+
+- Move RegularBgItem and AffinegItem to their own file.
+
+### Projects
+
+- Update copyright notices to 2023-2026.
+- Add unit tests.
+- Add integration tests.
+- Add CI.
+- Migrate to somewhere else than GitHub, Codeberg maybe.
+
+### Build
+
+- Drop build/src.
+
+### Tiled
+
+- Support other map formats than orthogonal.
+- Support embedded tilesets.
+
+### Examples
+
+- Find free graphics (tileset, objects) and build a map with them.
+
+### Regular background and affine background
+
+- Draw images taking the Tiled orientation into acccount.
+- Rework how big affine backgrounds are parameterized?
+- Document that the backgrounds may be drawn to larger sizes, surrounded by the
+  map's background color.
+- Allow failing the build if the map can't be drawn to completely fill a BG.
+
+### Map objects
+
+- Optional enum parameters for object names and object classe names.
+- Normalize map_objects names in the code and templates.
+- Add a parameter to export object names and object classe names strings? Though
+  it's inline so who cares.
+
+### Map tiles
+
+- What about tile enums, to know where tilesets start?
+- Support compressing tile maps.
+- Normalize map_tiles names in the code and templates.
+- Stop using bn::array since we can't have an empty aray anymore.
+
+### Documentation
+
+- Rework this documentation, especially regarding map objects and orthogonal
+  map.
+- Explain the difference between map, map tiles, bg map and bg tiles, maybe find
+  different names for these.
+- Explain that BGs can't have more than 256 individual tiles, which is something
+  to consider when building them from multiple layers.
