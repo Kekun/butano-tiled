@@ -24,4 +24,3 @@ const bntmx_span bntmx_maps_{map._name}_tiles(int tiles_layer_index)
     assert(tiles_layer_index < {map._tiles_layers_count});
     return {tiles_getter};
 }}
-
