@@ -57,8 +57,8 @@ Maps are *.tmx files you can build with [Tiled](https://www.mapeditor.org/).
 Each map must have a *.json descriptor whose root object expects the following
 fields:
 - `"regular_bg"`: the paths to the layers to draw as a `bn::regular_bg_item`
-- `"objects"`: the paths to the layers whose objects should be exported
-- `"tiles"`: the paths to the layers whose tiles should be exported
+- `"map_objects"`: the paths to the layers whose objects should be exported
+- `"map_tiles"`: the paths to the layers whose tiles should be exported
 
 The paths to layers are the names of the groups and layers from the *.tmx file
 joined with the / separator.
@@ -86,7 +86,7 @@ Here is an example of what a *.json decriptor could look like:
             "walls"
         ]
     ],
-    "objects": [
+    "map_objects": [
         [],
         [
             "doors",
@@ -95,7 +95,7 @@ Here is an example of what a *.json decriptor could look like:
             "teleporters"
         ],
     ],
-    "tiles": [
+    "map_tiles": [
         "wall_collisions",
         "ground_collisions"
     ]
@@ -112,7 +112,7 @@ These images are compiled into a single image and converted into a single
 You can access the graphics via `bntmx::map::regular_bg()` or as the bundled
 `bntmx::maps::world_regular_bg` asset.
 
-## Objects
+## Map objects
 
 Each objects layer is exported as lists of objects of type `bntmx::map_object`,
 a list of object IDs and a list of object classes.
@@ -132,7 +132,7 @@ The position of an object isn't the one defined in the map file but its center.
 
 You can access the objects via `bntmx::map::objects()`.
 
-## Tiles
+## Map tiles
 
 Each tiles layer is exported as a list of tile IDs of type `bntmx::map_tile`
 ordered from left to right and from top to bottom.

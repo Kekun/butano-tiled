@@ -491,8 +491,8 @@ class MapItem:
         descriptor = json.load(descriptor)
 
         self._regular_bg_layers = descriptor["regular_bg"] if "regular_bg" in descriptor else list()
-        self._objects_layers = descriptor["objects"] if "objects" in descriptor else list()
-        self._tiles_layers = descriptor["tiles"] if "tiles" in descriptor else list()
+        self._objects_layers = descriptor["map_objects"] if "map_objects" in descriptor else list()
+        self._tiles_layers = descriptor["map_tiles"] if "map_tiles" in descriptor else list()
 
         # The list of MapObjects for the list of object layers
         self._objects_layers_objects = list(map(lambda layer_path: self._tmx.objects(layer_path), self._objects_layers))

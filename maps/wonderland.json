@@ -3,14 +3,14 @@
         "layer_0/graphics",
         "layer_1/graphics"
     ],
-    "objects": [
+    "map_objects": [
         [
             "layer_0/doors",
             "layer_0/spawns"
         ],
         "layer_1/objects"
     ],
-    "tiles": [
+    "map_tiles": [
         "layer_0/collisions",
         "layer_1/collisions"
     ]
