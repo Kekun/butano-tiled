@@ -15,6 +15,7 @@ enum class WonderlandObjectClass {
 };
 
 #include "bn_regular_bg_items_wonderland_background.h"
+#include "bntmx_map_items_empty.h"
 #include "bntmx_map_items_wonderland.h"
 
 int main()

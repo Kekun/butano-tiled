@@ -10,6 +10,7 @@ typedef enum {
     wonderland_object_class_spawn,
 } WonderlandObjectClass;
 
+#include "bntmx_map_items_empty.h"
 #include "bntmx_map_items_wonderland.h"
 
 #define N_ELEMENTS(array) (sizeof (array) / sizeof ((array)[0]))
