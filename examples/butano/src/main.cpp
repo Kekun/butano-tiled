@@ -7,6 +7,7 @@
 #include <bn_core.h>
 #include <bn_display.h>
 #include <bn_log.h>
+#include <bn_regular_bg_ptr.h>
 
 enum class WonderlandObjectClass {
     door,
@@ -14,7 +15,6 @@ enum class WonderlandObjectClass {
 };
 
 #include "bn_regular_bg_items_wonderland_background.h"
-#include "bn_regular_bg_ptr.h"
 #include "bntmx_map_items_wonderland.h"
 
 int main()
