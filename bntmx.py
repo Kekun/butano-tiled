@@ -301,16 +301,19 @@ class MapItem:
         # Convert the TMX into its C++ header.
 
         template = _templates[self._target]
-        if self._target == Target.butano:
-            graphics = "bn::regular_bg_items::" + self._name if self._graphics_layers_count > 0 else "std::monostate()"
-            graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if self._graphics_layers_count > 0 else ""
-            indentation_depth = 1
-            namespace = ""
-        elif self._target == Target.c:
-            graphics = ""
-            graphics_include = ""
-            indentation_depth = 0
-            namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+        match self._target:
+            case Target.butano:
+                graphics = "bn::regular_bg_items::" + self._name if self._graphics_layers_count > 0 else "std::monostate()"
+                graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if self._graphics_layers_count > 0 else ""
+                indentation_depth = 1
+                namespace = ""
+            case Target.c:
+                graphics = ""
+                graphics_include = ""
+                indentation_depth = 0
+                namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+            case _:
+                raise ValueError('Unknown target: ' + str(self._target))
 
         objects_classes = self._objects_classes_enum(namespace)
         if len(objects_classes) == 0:
@@ -345,12 +348,15 @@ class MapItem:
         # Convert the TMX into its C++ source.
 
         template = _templates[self._target]
-        if self._target == Target.butano:
-            indentation_depth = 1
-            namespace = "bntmx::maps::" + self._name + "::"
-        elif self._target == Target.c:
-            indentation_depth = 0
-            namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+        match self._target:
+            case Target.butano:
+                indentation_depth = 1
+                namespace = "bntmx::maps::" + self._name + "::"
+            case Target.c:
+                indentation_depth = 0
+                namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
+            case _:
+                raise ValueError('Unknown target: ' + str(self._target))
 
         objects_spans = multiline_c_array(map(lambda layer: multiline_c_array(map(inline_c_array, layer), template['indentation'], indentation_depth + 1), self._objects_spans()), template['indentation'], indentation_depth)
         object_to_cpp_literal = lambda o: template['map_object_template'].format(x=o.x, y=o.y, id=o.map_id if o.id is None else namespace + str(o.id))
@@ -428,10 +434,13 @@ def process(target: Target, maps_dirs, build_dir):
                 bmp_filename = os.path.join(build_dir, "graphics", map_name + ".bmp")
                 bmp_json_filename = os.path.join(build_dir, "graphics", map_name + ".json")
                 header_filename = os.path.join(build_dir, "include", "bntmx_maps_" + map_name + ".h")
-                if target == Target.butano:
-                    source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
-                elif target == Target.c:
-                    source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".c")
+                match target:
+                    case Target.butano:
+                        source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
+                    case Target.c:
+                        source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".c")
+                    case _:
+                        raise ValueError('Unknown target: ' + str(target))
 
                 # Don't rebuild unchanged files
                 input_mtime = max(map(lambda filename : os.path.getmtime(filename) if os.path.isfile(filename) else 0, [tmx_filename, tmx_json_filename] + item.dependencies()))
