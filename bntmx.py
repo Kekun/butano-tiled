@@ -3,6 +3,7 @@ Copyright (c) 2023 Adrien Plazas <kekun.plazas@laposte.net>
 zlib License, see LICENSE file.
 """
 
+from enum import Enum
 from PIL import Image
 from tmx import TMX
 import argparse
@@ -10,59 +11,64 @@ import json
 import os
 import re
 
-_targets = ['butano', 'c']
+class Target(Enum):
+    butano = 'butano'
+    c = 'c'
+
+    def __str__(self):
+        return self.value
 
 def read_template(target, template):
     bntmx_dir = os.path.dirname(os.path.realpath(__file__))
-    template_filename = os.path.join(bntmx_dir, 'templates', target, template)
+    template_filename = os.path.join(bntmx_dir, 'templates', str(target), template)
     template_file = open(template_filename, 'r')
     return template_file.read()
 
 _templates = {
-    'butano': {
-        'graphics': read_template('butano', 'graphics.h'),
-        'header_template': read_template('butano', 'header_template.h'),
+    Target.butano: {
+        'graphics': read_template(Target.butano, 'graphics.h'),
+        'header_template': read_template(Target.butano, 'header_template.h'),
         'indentation': '    ',
-        'map_object_template': read_template('butano', 'map_object_template.h'),
-        'object_dummy': read_template('butano', 'object_dummy.h'),
-        'object_getter': read_template('butano', 'object_getter.h'),
-        'object_ids_definition_empty': read_template('butano', 'object_ids_definition_empty.h'),
-        'object_ids_definition_template': read_template('butano', 'object_ids_definition_template.h'),
-        'objects_classes_definition_empty': read_template('butano', 'objects_classes_definition_empty.h'),
-        'objects_classes_definition_template': read_template('butano', 'objects_classes_definition_template.h'),
-        'objects_definition_empty': read_template('butano', 'objects_definition_empty.h'),
-        'objects_definition_template': read_template('butano', 'objects_definition_template.h'),
-        'objects_dummy': read_template('butano', 'objects_dummy.h'),
-        'objects_getter_classless': read_template('butano', 'objects_getter_classless.h'),
-        'objects_getter_with_class': read_template('butano', 'objects_getter_with_class.h'),
-        'source_template': read_template('butano', 'source_template.cpp'),
-        'tile_ids_definition_empty': read_template('butano', 'tile_ids_definition_empty.h'),
-        'tile_ids_definition_template': read_template('butano', 'tile_ids_definition_template.h'),
-        'tiles_definition_template': read_template('butano', 'tiles_definition_template.h'),
-        'tiles_dummy': read_template('butano', 'tiles_dummy.h'),
-        'tiles_getter_template': read_template('butano', 'tiles_getter_template.h'),
+        'map_object_template': read_template(Target.butano, 'map_object_template.h'),
+        'object_dummy': read_template(Target.butano, 'object_dummy.h'),
+        'object_getter': read_template(Target.butano, 'object_getter.h'),
+        'object_ids_definition_empty': read_template(Target.butano, 'object_ids_definition_empty.h'),
+        'object_ids_definition_template': read_template(Target.butano, 'object_ids_definition_template.h'),
+        'objects_classes_definition_empty': read_template(Target.butano, 'objects_classes_definition_empty.h'),
+        'objects_classes_definition_template': read_template(Target.butano, 'objects_classes_definition_template.h'),
+        'objects_definition_empty': read_template(Target.butano, 'objects_definition_empty.h'),
+        'objects_definition_template': read_template(Target.butano, 'objects_definition_template.h'),
+        'objects_dummy': read_template(Target.butano, 'objects_dummy.h'),
+        'objects_getter_classless': read_template(Target.butano, 'objects_getter_classless.h'),
+        'objects_getter_with_class': read_template(Target.butano, 'objects_getter_with_class.h'),
+        'source_template': read_template(Target.butano, 'source_template.cpp'),
+        'tile_ids_definition_empty': read_template(Target.butano, 'tile_ids_definition_empty.h'),
+        'tile_ids_definition_template': read_template(Target.butano, 'tile_ids_definition_template.h'),
+        'tiles_definition_template': read_template(Target.butano, 'tiles_definition_template.h'),
+        'tiles_dummy': read_template(Target.butano, 'tiles_dummy.h'),
+        'tiles_getter_template': read_template(Target.butano, 'tiles_getter_template.h'),
     },
-    'c': {
-        'header_template': read_template('c', 'header_template.h'),
+    Target.c: {
+        'header_template': read_template(Target.c, 'header_template.h'),
         'indentation': '    ',
-        'map_object_template': read_template('c', 'map_object.h'),
-        'object_dummy': read_template('c', 'object_dummy.h'),
-        'object_getter': read_template('c', 'object_getter.h'),
-        'object_ids_definition_empty': read_template('c', 'object_ids_definition_empty.h'),
-        'object_ids_definition_template': read_template('c', 'object_ids_definition_template.h'),
-        'objects_classes_definition_empty': read_template('c', 'objects_classes_definition_empty.h'),
-        'objects_classes_definition_template': read_template('c', 'objects_classes_definition_template.h'),
-        'objects_definition_empty': read_template('c', 'objects_definition_empty.h'),
-        'objects_definition_template': read_template('c', 'objects_definition_template.h'),
-        'objects_dummy': read_template('c', 'objects_dummy.h'),
-        'objects_getter_classless': read_template('c', 'objects_getter.h'),
-        'objects_getter_with_class': read_template('c', 'objects_getter.h'),
-        'source_template': read_template('c', 'source_template.c'),
-        'tile_ids_definition_empty': read_template('c', 'tile_ids_definition_empty.h'),
-        'tile_ids_definition_template': read_template('c', 'tile_ids_definition_template.h'),
-        'tiles_definition_template': read_template('c', 'tiles_definition_template.h'),
-        'tiles_dummy': read_template('c', 'tiles_dummy.h'),
-        'tiles_getter_template': read_template('c', 'tiles_getter_template.h'),
+        'map_object_template': read_template(Target.c, 'map_object.h'),
+        'object_dummy': read_template(Target.c, 'object_dummy.h'),
+        'object_getter': read_template(Target.c, 'object_getter.h'),
+        'object_ids_definition_empty': read_template(Target.c, 'object_ids_definition_empty.h'),
+        'object_ids_definition_template': read_template(Target.c, 'object_ids_definition_template.h'),
+        'objects_classes_definition_empty': read_template(Target.c, 'objects_classes_definition_empty.h'),
+        'objects_classes_definition_template': read_template(Target.c, 'objects_classes_definition_template.h'),
+        'objects_definition_empty': read_template(Target.c, 'objects_definition_empty.h'),
+        'objects_definition_template': read_template(Target.c, 'objects_definition_template.h'),
+        'objects_dummy': read_template(Target.c, 'objects_dummy.h'),
+        'objects_getter_classless': read_template(Target.c, 'objects_getter.h'),
+        'objects_getter_with_class': read_template(Target.c, 'objects_getter.h'),
+        'source_template': read_template(Target.c, 'source_template.c'),
+        'tile_ids_definition_empty': read_template(Target.c, 'tile_ids_definition_empty.h'),
+        'tile_ids_definition_template': read_template(Target.c, 'tile_ids_definition_template.h'),
+        'tiles_definition_template': read_template(Target.c, 'tiles_definition_template.h'),
+        'tiles_dummy': read_template(Target.c, 'tiles_dummy.h'),
+        'tiles_getter_template': read_template(Target.c, 'tiles_getter_template.h'),
     },
 }
 
@@ -152,9 +158,7 @@ def mangle(name: str) -> str:
     return "" if match is None else match.group(1)
 
 class MapItem:
-    def __init__(self, target, tmx_filename):
-        assert target in _targets
-
+    def __init__(self, target: Target, tmx_filename):
         self._target = target
         self._tmx = TMX(tmx_filename)
         self._basename = os.path.splitext(os.path.basename(tmx_filename))[0]
@@ -291,18 +295,18 @@ class MapItem:
         _, src_height = self._tmx.dimensions_in_pixels()
         bg_height = bg_size(src_height)
 
-        return _templates['butano']['graphics'].format(bg_height=bg_height)
+        return _templates[Target.butano]['graphics'].format(bg_height=bg_height)
 
     def butano_header(self):
         # Convert the TMX into its C++ header.
 
         template = _templates[self._target]
-        if self._target == "butano":
+        if self._target == Target.butano:
             graphics = "bn::regular_bg_items::" + self._name if self._graphics_layers_count > 0 else "std::monostate()"
             graphics_include = "#include <bn_regular_bg_items_" + self._name + ".h>" if self._graphics_layers_count > 0 else ""
             indentation_depth = 1
             namespace = ""
-        elif self._target == "c":
+        elif self._target == Target.c:
             graphics = ""
             graphics_include = ""
             indentation_depth = 0
@@ -341,10 +345,10 @@ class MapItem:
         # Convert the TMX into its C++ source.
 
         template = _templates[self._target]
-        if self._target == "butano":
+        if self._target == Target.butano:
             indentation_depth = 1
             namespace = "bntmx::maps::" + self._name + "::"
-        elif self._target == "c":
+        elif self._target == Target.c:
             indentation_depth = 0
             namespace = "BNTMX_MAPS_" + self._name.upper() + "_"
 
@@ -392,9 +396,7 @@ class MapItem:
             tiles_definition=tiles_definition,
             tiles_getter=tiles_getter)
 
-def process(target, maps_dirs, build_dir):
-    assert target in _targets
-
+def process(target: Target, maps_dirs, build_dir):
     bntmx_dir = os.path.dirname(os.path.realpath(__file__))
     build_graphics_dir = os.path.join(build_dir, "graphics")
     build_include_dir = os.path.join(build_dir, "include")
@@ -426,9 +428,9 @@ def process(target, maps_dirs, build_dir):
                 bmp_filename = os.path.join(build_dir, "graphics", map_name + ".bmp")
                 bmp_json_filename = os.path.join(build_dir, "graphics", map_name + ".json")
                 header_filename = os.path.join(build_dir, "include", "bntmx_maps_" + map_name + ".h")
-                if target == "butano":
+                if target == Target.butano:
                     source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".cpp")
-                elif target == "c":
+                elif target == Target.c:
                     source_filename = os.path.join(build_dir, "src", "bntmx_maps_" + map_name + ".c")
 
                 # Don't rebuild unchanged files
@@ -442,7 +444,7 @@ def process(target, maps_dirs, build_dir):
                 if gfx_im is not None:
                     gfx_im.save(bmp_filename, "BMP")
                     # Export the graphics descriptor
-                    if target == "butano":
+                    if target == Target.butano:
                         write_to_file(bmp_json_filename, item.regular_bg_descriptor())
 
                 # Export the C++ header
@@ -453,7 +455,7 @@ def process(target, maps_dirs, build_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compile Tiled maps into code and data usable by the game engine.')
-    parser.add_argument('--target', choices=_targets, required=True, help='build target')
+    parser.add_argument('--target', type=Target, choices=list(Target), required=True, help='build target')
     parser.add_argument('--build', required=True, help='build directory path')
     parser.add_argument('mapsdirs', metavar='mapsdir', nargs='+',
                         help='maps directories paths')
