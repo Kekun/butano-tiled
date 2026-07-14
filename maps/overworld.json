@@ -1,0 +1,8 @@
+{
+    "affine_bg": {
+        "layers": [
+            "ground",
+            "overlay"
+        ]
+    }
+}

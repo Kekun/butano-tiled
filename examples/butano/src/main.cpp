@@ -3,6 +3,7 @@
  * zlib License, see LICENSE file.
  */
 
+#include <bn_affine_bg_ptr.h>
 #include <bn_camera_ptr.h>
 #include <bn_core.h>
 #include <bn_display.h>
@@ -17,6 +18,7 @@ enum class WonderlandObjectClass {
 
 #include "bn_regular_bg_items_wonderland_background.h"
 #include "bntmx_map_items_empty.h"
+#include "bntmx_map_items_overworld.h"
 #include "bntmx_map_items_wonderland.h"
 
 void wonderland_scene()
@@ -51,6 +53,16 @@ void wonderland_scene()
     }
 }
 
+void overworld_scene()
+{
+    bn::affine_bg_ptr affine_bg = bntmx::map_items::overworld_affine_bg.create_bg(0, 0, 0);
+
+    while(!bn::keypad::start_pressed())
+    {
+        bn::core::update();
+    }
+}
+
 int main()
 {
     bn::core::init();
@@ -58,6 +70,9 @@ int main()
     while(true)
     {
         wonderland_scene();
+        bn::core::update();
+
+        overworld_scene();
         bn::core::update();
     }
 }

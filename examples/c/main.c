@@ -32,9 +32,15 @@ void wonderland_scene()
     }
 }
 
+void overworld_scene()
+{
+}
+
 int main()
 {
     wonderland_scene();
+
+    overworld_scene();
 
     return 0;
 }
