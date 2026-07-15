@@ -6,6 +6,7 @@
 #include <bn_camera_ptr.h>
 #include <bn_core.h>
 #include <bn_display.h>
+#include <bn_keypad.h>
 #include <bn_log.h>
 #include <bn_regular_bg_ptr.h>
 
@@ -18,10 +19,8 @@ enum class WonderlandObjectClass {
 #include "bntmx_map_items_empty.h"
 #include "bntmx_map_items_wonderland.h"
 
-int main()
+void wonderland_scene()
 {
-    bn::core::init();
-
     for (auto object_class: bntmx::map_items::wonderland_map_objects_class_names_span) {
         BN_LOG("wonderland.tmx class id ", std::get<0>(object_class), " is named ", std::get<1>(object_class));
     }
@@ -46,8 +45,19 @@ int main()
     camera.set_x(-(layout.width() - bn::display::width()) / 2);
     camera.set_y(-(layout.height() - bn::display::height()) / 2);
 
+    while(!bn::keypad::start_pressed())
+    {
+        bn::core::update();
+    }
+}
+
+int main()
+{
+    bn::core::init();
+
     while(true)
     {
+        wonderland_scene();
         bn::core::update();
     }
 }
