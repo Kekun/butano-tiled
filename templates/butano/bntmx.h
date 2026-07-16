@@ -338,42 +338,6 @@ private:
     const bntmx::slice* _object_slices;
 };
 
-class map_item
-{
-
-public:
-    virtual constexpr ~map_item() {}
-
-    /**
-     * @brief Returns the dimensions of the map in pixels.
-     */
-    virtual constexpr bn::size dimensions_in_pixels() const = 0;
-
-    /**
-     * @brief Returns the width of the map in pixels.
-     */
-    virtual constexpr int width_in_pixels() const = 0;
-
-    /**
-     * @brief Returns the height of the map in pixels.
-     */
-    virtual constexpr int height_in_pixels() const = 0;
-
-    /**
-     * @brief Returns the number of regular background layers of the map.
-     */
-    virtual constexpr int regular_bg_layers_count() const = 0;
-
-    /**
-     * @brief Returns the regular background layers of the map.
-     */
-    virtual constexpr  bn::optional<bn::regular_bg_item> regular_bg() const = 0;
-
-    /**
-     * @brief Returns the objects item of the map.
-     */
-};
-
 }
 
 #endif

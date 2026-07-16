@@ -7,13 +7,4 @@
 
 {item_declarations}
 
-#define bntmx_map_items_{map._name}_height_in_pixels() ({map._height_in_pixels})
-#define bntmx_map_items_{map._name}_regular_bg_layers_count() ({map._regular_bg_layers_count})
-#define bntmx_map_items_{map._name}_objects_layers_count() ({map._objects_layers_count})
-#define bntmx_map_items_{map._name}_tiles_layers_count() ({map._tiles_layers_count})
-
-const bntmx_map_object bntmx_map_items_{map._name}_object(int id);
-const bntmx_span bntmx_map_items_{map._name}_objects(int objects_layer_index, int objects_class);
-const bntmx_span bntmx_map_items_{map._name}_tiles(int tiles_layer_index);
-
 #endif
