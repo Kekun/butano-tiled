@@ -1363,12 +1363,9 @@ def process(target: Target, grit, maps_dirs, build_dir):
         target = Target[target]
 
     bntmx_dir = os.path.dirname(os.path.realpath(__file__))
-    build_src_dir = os.path.join(build_dir, "src")
 
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
-    if not os.path.exists(build_src_dir):
-        os.makedirs(build_src_dir)
 
     # Export the global header
     include_filename = os.path.join(build_dir, "bntmx.h")
@@ -1389,9 +1386,9 @@ def process(target: Target, grit, maps_dirs, build_dir):
                 header_filename = os.path.join(build_dir, "bntmx_map_items_" + map_name + ".h")
                 match target:
                     case Target.butano:
-                        source_filename = os.path.join(build_dir, "src", "bntmx_map_items_" + map_name + ".cpp")
+                        source_filename = os.path.join(build_dir, "bntmx_map_items_" + map_name + ".cpp")
                     case Target.c:
-                        source_filename = os.path.join(build_dir, "src", "bntmx_map_items_" + map_name + ".c")
+                        source_filename = os.path.join(build_dir, "bntmx_map_items_" + map_name + ".c")
                     case _:
                         raise ValueError('Unknown target: ' + str(target))
 
