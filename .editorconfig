@@ -1,17 +1,20 @@
 root = true
 
-[*.[c,cpp,h]]
+[*]
 end_of_line = lf
-insert_final_newline = false
+insert_final_newline = true
+
+[*.{c,cpp,h}]
+indent_style = space
+indent_size = 4
 
 [*.json]
 indent_style = space
 indent_size = 4
-end_of_line = lf
-insert_final_newline = true
 
 [*.py]
 indent_style = space
 indent_size = 4
-end_of_line = lf
-insert_final_newline = true
+
+[templates/**.{c,cpp,h}]
+insert_final_newline = false
