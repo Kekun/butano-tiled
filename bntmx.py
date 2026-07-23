@@ -1359,6 +1359,9 @@ class MapItem:
             tiles_getter=tiles_getter)
 
 def process(target: Target, grit, maps_dirs, build_dir):
+    if isinstance(target, str):
+        target = Target[target]
+
     bntmx_dir = os.path.dirname(os.path.realpath(__file__))
     build_src_dir = os.path.join(build_dir, "src")
 
