@@ -192,7 +192,7 @@ bntmx_map_object bntmx_map_objects_item_object(const bntmx_map_objects_item* thi
 bntmx_span bntmx_map_objects_item_objects(const bntmx_map_objects_item* this, int objects_layer_index, bntmx_map_object_class objects_class)
 {
     assert(objects_layer_index < this->layers_count);
-    assert(objects_class < this->classes_count);
+    assert(objects_class <= this->classes_count);
     const bntmx_slice* object_slices = this->object_slices + objects_layer_index * (this->classes_count + 1);
     const void* begin = &this->objects[object_slices[objects_class].index];
     const void* end = begin + sizeof(bntmx_map_object) * object_slices[objects_class].length;

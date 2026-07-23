@@ -324,7 +324,7 @@ public:
     [[nodiscard]] const bn::span<const bntmx::map_object> objects(int objects_layer_index, bntmx::map_object_class objects_class) const
     {
         BN_ASSERT(objects_layer_index < _layers_count, "Invalid objects layer index: ", objects_layer_index);
-        BN_ASSERT(objects_class < _classes_count, "Invalid objects class: ", objects_class);
+        BN_ASSERT(objects_class <= _classes_count, "Invalid objects class: ", objects_class);
         const bntmx::slice* object_slices = _object_slices + objects_layer_index * (_classes_count + 1);
         return bn::span(&_objects[object_slices[objects_class].index], object_slices[objects_class].length);
     }
