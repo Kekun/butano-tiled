@@ -945,7 +945,7 @@ class MapObjectsItem:
                 source_foreign_includes.add('bn_array.h')
 
         map_objects_classes_labels = list(map(lambda i_and_object_class: self._templates['map_objects_class_names_pair'].format(
-            object_class_name=mangle(i_and_object_class[1]),
+            object_class_name=str(i_and_object_class[1]),
             object_class_id=str(i_and_object_class[0])), enumerate(self._classes())))[1:]
         map_objects_classes_labels_literal = multiline_c_array(map_objects_classes_labels, self._templates['indentation'], 0)
         map_objects_classes_labels_definition = self._templates['map_objects_class_names_declaration'].format(
@@ -956,7 +956,7 @@ class MapObjectsItem:
             object_class_enum = list(map(lambda i_and_object_class: self._templates['map_objects_class_enum_pair'].format(
                 map_objects_item=self,
                 class_id=str(i_and_object_class[0]),
-                class_name=mangle(i_and_object_class[1])), enumerate(self._classes())))[1:]
+                class_name=str(i_and_object_class[1])), enumerate(self._classes())))[1:]
             map_object_class_enum_literal = multiline_c_array(object_class_enum, self._templates['indentation'], 0)
             map_objects_class_enum_declaration = self._templates['map_objects_class_enum_declaration'].format(
                 map_objects_item=self,
@@ -970,7 +970,7 @@ class MapObjectsItem:
         map_objects_getter_with_class = self._templates['objects_getter_with_class']
 
         object_ids = list(map(lambda map_object: self._templates['map_objects_names_pair'].format(
-            object_name=mangle(map_object.id) if map_object.id is not None else '',
+            object_name=str(map_object.id) if map_object.id is not None else '',
             object_id=str(map_object.map_id)), [map_object for map_object in self._objects]))
 
         object_ids_literal = multiline_c_array(object_ids, self._templates['indentation'], 0)
@@ -982,7 +982,7 @@ class MapObjectsItem:
             object_enum = list(map(lambda i_and_object_class: self._templates['map_objects_enum_pair'].format(
                 id=str(i_and_object_class[0]),
                 enum_prefix=self._enum_prefix,
-                name=mangle(i_and_object_class[1])), enumerate(self._objects_classes())))[1:]
+                name=str(i_and_object_class[1])), enumerate(self._objects_classes())))[1:]
             object_enum_literal = multiline_c_array(object_enum, self._templates['indentation'], 0)
             map_objects_enum_declaration = self._templates['map_objects_enum_declaration'].format(
                 enum_type=self._enum_type,
